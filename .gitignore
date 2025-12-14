@@ -46,6 +46,8 @@ Thumbs.db
 # Data (if large)
 # DATA/
 *.Zone.Identifier
+# Windows NTFS alternate data streams
+*:Zone.Identifier
 
 # Misc
 .env
