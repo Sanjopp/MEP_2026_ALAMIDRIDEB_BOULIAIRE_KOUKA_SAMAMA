@@ -3,17 +3,39 @@ from .batchnorm import BatchNorm1D
 
 
 class MLP(nn.Module):
-    def __init__(self, use_bn=False):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dims=(256, 128),
+        num_classes: int = 10,
+        use_bn: bool = False,
+    ):
+        """
+        Generic MLP with optional BatchNorm.
+
+        Parameters
+        ----------
+        input_dim : int
+            Input dimension (e.g. 784 for Fashion-MNIST, 3072 for CIFAR-10)
+        hidden_dims : tuple
+            Sizes of hidden layers
+        num_classes : int
+            Number of output classes
+        use_bn : bool
+            Whether to use Batch Normalization
+        """
         super().__init__()
         self.use_bn = use_bn
 
-        self.fc1 = nn.Linear(3 * 32 * 32, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, 10)
+        h1, h2 = hidden_dims
+
+        self.fc1 = nn.Linear(input_dim, h1)
+        self.fc2 = nn.Linear(h1, h2)
+        self.fc3 = nn.Linear(h2, num_classes)
 
         if use_bn:
-            self.bn1 = BatchNorm1D(256)
-            self.bn2 = BatchNorm1D(128)
+            self.bn1 = BatchNorm1D(h1)
+            self.bn2 = BatchNorm1D(h2)
 
         self.relu = nn.ReLU()
 
