@@ -10,6 +10,33 @@ def grad_norm(model):
             total += p.grad.data.norm(2).item() ** 2
     return total ** 0.5
 
+def train_steps(model, loader, optimizer, device, history):
+    """
+    Entraîne le modèle sur UN epoch
+    mais log les métriques à CHAQUE step.
+    """
+    model.train()
+
+    for x, y in tqdm(loader, desc="Training steps", leave=False):
+        x, y = x.to(device), y.to(device)
+
+        optimizer.zero_grad()
+        logits = model(x)
+        loss = F.cross_entropy(logits, y)
+        loss.backward()
+
+        gnorm = grad_norm(model)
+        optimizer.step()
+
+        # Calcul de l'accuracy sur le batch
+        with torch.no_grad():
+            preds = logits.argmax(dim=1)
+            acc = (preds == y).float().mean().item()
+
+        # LOG PAR STEP
+        history["loss"].append(loss.item())
+        history["grad_norm"].append(gnorm)
+        history["train_acc"].append(acc)
 
 def train_epoch(model, loader, optimizer, device):
     model.train()
