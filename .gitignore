@@ -48,6 +48,8 @@ Thumbs.db
 *.Zone.Identifier
 # Windows NTFS alternate data streams
 *:Zone.Identifier
+minivgg_cifar10_best.pt
+cifar-10-python.tar.gz
 
 # Misc
 .env
