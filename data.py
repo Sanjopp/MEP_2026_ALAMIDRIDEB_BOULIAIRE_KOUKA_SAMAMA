@@ -11,10 +11,10 @@ def unpickle(file):
 
 
 def load_cifar10_from_batches(
-    root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
+        root=r"/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py"#,root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
 ):
     # Load training batches
-    train_batches = [unpickle(f"{root}\data_batch_{i}") for i in range(1, 6)]
+    train_batches = [unpickle(f"{root}/data_batch_{i}") for i in range(1, 6)]
 
     X_train = np.concatenate([batch[b"data"] for batch in train_batches], axis=0)
     y_train = np.concatenate([batch[b"labels"] for batch in train_batches], axis=0)
@@ -45,7 +45,7 @@ def preprocess_cifar(X):
 
 def get_dataloaders(
     batch_size=128,
-    root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
+    root=r"/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py"#,root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
 ):
     X_train, y_train, X_test, y_test = load_cifar10_from_batches(root)
 
