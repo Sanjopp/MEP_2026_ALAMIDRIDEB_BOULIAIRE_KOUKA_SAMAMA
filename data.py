@@ -5,28 +5,24 @@ from torch.utils.data import TensorDataset, DataLoader
 
 
 def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
+    with open(file, "rb") as fo:
+        dict = pickle.load(fo, encoding="bytes")
     return dict
 
 
-def load_cifar10_from_batches(root="/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py"):
+def load_cifar10_from_batches(
+    root=r"/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py",  # ,root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
+):
     # Load training batches
-    train_batches = [
-        unpickle(f"{root}/data_batch_{i}") for i in range(1, 6)
-    ]
+    train_batches = [unpickle(f"{root}/data_batch_{i}") for i in range(1, 6)]
 
-    X_train = np.concatenate(
-        [batch[b'data'] for batch in train_batches], axis=0
-    )
-    y_train = np.concatenate(
-        [batch[b'labels'] for batch in train_batches], axis=0
-    )
+    X_train = np.concatenate([batch[b"data"] for batch in train_batches], axis=0)
+    y_train = np.concatenate([batch[b"labels"] for batch in train_batches], axis=0)
 
     # Load test batch
     test_batch = unpickle(f"{root}/test_batch")
-    X_test = test_batch[b'data']
-    y_test = np.array(test_batch[b'labels'])
+    X_test = test_batch[b"data"]
+    y_test = np.array(test_batch[b"labels"])
 
     return X_train, y_train, X_test, y_test
 
@@ -47,7 +43,10 @@ def preprocess_cifar(X):
     return torch.from_numpy(X).float()
 
 
-def get_dataloaders(batch_size=128, root="/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py"):
+def get_dataloaders(
+    batch_size=128,
+    root=r"/home/kouka/Projectss/Advanced_ML_BN_2025/DATA/cifar-10-batches-py",  # ,root=r"C:\Users\ryans\Desktop\projet_programation\Advanced_ML_BN_2025\data\cifar-10-batches-py",
+):
     X_train, y_train, X_test, y_test = load_cifar10_from_batches(root)
 
     X_train = preprocess_cifar(X_train)
@@ -59,11 +58,7 @@ def get_dataloaders(batch_size=128, root="/home/kouka/Projectss/Advanced_ML_BN_2
     train_ds = TensorDataset(X_train, y_train)
     test_ds = TensorDataset(X_test, y_test)
 
-    train_loader = DataLoader(
-        train_ds, batch_size=batch_size, shuffle=True
-    )
-    test_loader = DataLoader(
-        test_ds, batch_size=batch_size, shuffle=False
-    )
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
     return train_loader, test_loader
