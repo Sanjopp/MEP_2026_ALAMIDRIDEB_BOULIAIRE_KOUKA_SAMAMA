@@ -207,6 +207,7 @@ Through these experiments, you'll observe:
 
 Related concepts:
 - [Batch Normalization Paper](https://arxiv.org/abs/1502.03167) - Original BN introduction
+- [How Does Batch Normalization Help Optimization?](https://arxiv.org/abs/1805.11604) - Analysis of BN's role in landscape smoothing vs. activation stabilization
 - Internal Covariate Shift - Problem BN solves
 - Activation Functions - Interaction with ReLU and similar
 
