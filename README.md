@@ -160,23 +160,6 @@ All dependencies are listed in `requirements.txt`:
 - **PIL** - Image processing
 - CUDA support for GPU acceleration
 
-## 🚀 Getting Started
-
-### 1. Setup Environment
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Prepare Data
-Run `check_data.ipynb` to validate datasets
-
-### 3. Run Experiments
-Open any notebook in `notebook/` and execute cells:
-```bash
-jupyter notebook notebook/experiment_fashion.ipynb
-```
 
 ## 📈 Key Findings (Expected)
 
@@ -186,7 +169,6 @@ Through these experiments, you'll observe:
 2. **Higher Accuracy** - BN often leads to better final performance
 3. **Smoother Training** - Loss curves are more stable with BatchNorm
 4. **Better Gradient Flow** - Gradient norms remain more stable
-5. **Reduced Activation Shift** - Batch Normalization mitigates internal covariate shift
 
 ## 🔬 Research Questions Addressed
 
@@ -201,18 +183,15 @@ Through these experiments, you'll observe:
 - All experiments use standard SGD/Adam optimizers
 - Batch size: typically 128
 - Models are trained from scratch (no pre-training)
-- Reproducibility ensured where possible with seed management
 
 ## 🔗 References
 
 Related concepts:
 - [Batch Normalization Paper](https://arxiv.org/abs/1502.03167) - Original BN introduction
 - [How Does Batch Normalization Help Optimization?](https://arxiv.org/abs/1805.11604) - Analysis of BN's role in landscape smoothing vs. activation stabilization
-- Internal Covariate Shift - Problem BN solves
-- Activation Functions - Interaction with ReLU and similar
 
 ---
 
 **Project Status**: Active research and experimentation  
-**Current Branch**: `conv_nn` - CNN implementations and analysis  
+**Current Branch**: `main` - CNN implementations and analysis  
 **Last Updated**: January 2025
