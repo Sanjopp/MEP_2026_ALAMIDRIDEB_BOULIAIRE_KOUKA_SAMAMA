@@ -93,11 +93,10 @@ All experiments are organized in the `notebook/` directory with a systematic str
    - Fine-grained step analysis for CNN on CIFAR-10
    - Shows layer-wise evolution during training
 
-#### Special Analysis
+#### Special Analysis (CIFAR-10)
 - **`experiment_activation_distribution.ipynb`**
   - Deep dive into Batch Normalization's effect on activation distributions
   - Visualizes how internal representations change
-  - Demonstrates normalization across all tested configurations
 
 ## 🧠 Key Components
 
