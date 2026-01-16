@@ -2,11 +2,11 @@
 
 **Advanced Machine Learning Course Project**
 
-This project revisits the fundamental question: **How does Batch Normalization really help optimization?** We conduct controlled experiments in a simplified setting using two architectures—Multi-Layer Perceptron (MLP) and Convolutional Neural Network (CNN)—trained with and without Batch Normalization on CIFAR-10 and Fashion-MNIST datasets. Our experiments aim to isolate and verify the core hypothesis that **Batch Normalization facilitates optimization primarily through landscape smoothing** rather than by stabilizing activation statistics.
+This project revisits the fundamental question: How does Batch Normalization really help optimization? We conduct controlled experiments in a simplified setting using two architectures—Multi-Layer Perceptron (MLP) and Convolutional Neural Network (CNN)—trained with and without Batch Normalization on CIFAR-10 and Fashion-MNIST datasets. Our experiments aim to isolate and verify the core hypothesis that Batch Normalization facilitates optimization primarily through landscape smoothing rather than by stabilizing activation statistics.
 
-## 📋 Repository Overview
+##  Repository Overview
 
-This project systematically investigates the impact of **Batch Normalization** through controlled experiments:
+This project systematically investigates the impact of Batch Normalization through controlled experiments:
 
 **Experimental Matrix**: 2 Datasets × 2 Architectures × 2 Analysis Levels = 8 Core Experiments
 - **Datasets**: CIFAR-10 (RGB, 32×32) and Fashion-MNIST (Grayscale, 28×28)
@@ -15,12 +15,12 @@ This project systematically investigates the impact of **Batch Normalization** t
   - **Epoch-level** - Metrics computed after each complete epoch
   - **Step-level** - Metrics computed at every batch during training for fine-grained dynamics
 
-Each experiment compares training **with** and **without** Batch Normalization, examining:
+Each experiment compares training with and without Batch Normalization, examining:
 - Accuracy
 - Loss stability during training
 - Gradient flow and optimization dynamics
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ### Core Files
 - **`models/`** - Neural network architectures
@@ -96,7 +96,7 @@ All experiments are organized in the `notebook/` directory with a systematic str
   - Deep dive into Batch Normalization's effect on activation distributions
   - Visualizes how internal representations change
 
-## 🧠 Key Components
+##  Key Components
 
 ### Custom Batch Normalization
 The `batchnorm.py` module implements a custom BatchNorm1D layer using PyTorch's autograd:
@@ -134,7 +134,7 @@ ConvMLP(
 - **`grad_norm()`** - Computes L2 norm of all gradients
 - **Per-step metrics** - Loss, accuracy, gradient norm tracked at batch level
 
-## 📊 Datasets
+##  Datasets
 
 ### CIFAR-10
 - 32×32 RGB images
@@ -146,7 +146,7 @@ ConvMLP(
 - 10 clothing/object classes
 - 60,000 training samples, 10,000 test samples
 
-## 🔧 Requirements
+##  Requirements
 
 All dependencies are listed in `requirements.txt`:
 - **PyTorch** - Deep learning framework
@@ -158,7 +158,7 @@ All dependencies are listed in `requirements.txt`:
 - CUDA support for GPU acceleration
 
 
-## 📈 Key Findings (Expected)
+##  Key Findings (Expected)
 
 Through these experiments, you'll observe:
 
@@ -167,7 +167,7 @@ Through these experiments, you'll observe:
 3. **Smoother Training** - Loss curves are more stable with BatchNorm
 4. **Better Gradient Flow** - Gradient norms remain more stable
 
-## 🔬 Research Questions Addressed
+##  Research Questions Addressed
 
 - How does Batch Normalization affect activation distributions?
 - Does BN improve training dynamics at the step level?
@@ -175,13 +175,13 @@ Through these experiments, you'll observe:
 - Does BN improve performance on different datasets?
 - How do gradients flow differently with vs. without BN?
 
-## 📝 Notes
+##  Notes
 
 - All experiments use standard SGD/Adam optimizers
 - Batch size: typically 128
 - Models are trained from scratch (no pre-training)
 
-## 🔗 References
+##  References
 
 Related concepts:
 - [Batch Normalization Paper](https://arxiv.org/abs/1502.03167) - Original BN introduction
