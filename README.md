@@ -190,5 +190,5 @@ Related concepts:
 ---
 
 **Project Status**: Active research and experimentation  
-**Current Branch**: `main` - CNN implementations and analysis  
+**Current Branch**: `main` 
 **Last Updated**: January 2025
