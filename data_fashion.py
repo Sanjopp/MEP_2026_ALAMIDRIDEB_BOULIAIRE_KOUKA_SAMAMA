@@ -3,10 +3,7 @@ from torchvision import datasets, transforms
 
 
 def get_fashion_mnist_loaders(batch_size=128):
-    """
-    Télécharge automatiquement Fashion-MNIST si absent,
-    puis retourne train_loader et test_loader.
-    """
+    
 
     transform = transforms.Compose([
         transforms.ToTensor(),
