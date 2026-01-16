@@ -8,7 +8,8 @@ def grad_norm(model):
     for p in model.parameters():
         if p.grad is not None:
             total += p.grad.data.norm(2).item() ** 2
-    return total ** 0.5
+    return total**0.5
+
 
 def train_steps(model, loader, optimizer, device, history):
     """
@@ -28,15 +29,16 @@ def train_steps(model, loader, optimizer, device, history):
         gnorm = grad_norm(model)
         optimizer.step()
 
-        # Calcul de l'accuracy sur le batch
+        # Calculation of accuracy on the batch
         with torch.no_grad():
             preds = logits.argmax(dim=1)
             acc = (preds == y).float().mean().item()
 
-        # LOG PAR STEP
+        # LOG PER STEP
         history["loss"].append(loss.item())
         history["grad_norm"].append(gnorm)
         history["train_acc"].append(acc)
+
 
 def train_epoch(model, loader, optimizer, device):
     model.train()
@@ -57,7 +59,6 @@ def train_epoch(model, loader, optimizer, device):
         grad_sum += gnorm
 
     return loss_sum / len(loader), grad_sum / len(loader)
-
 
 
 @torch.no_grad()
