@@ -16,11 +16,9 @@ This project systematically investigates the impact of **Batch Normalization** t
   - **Step-level** - Metrics computed at every batch during training for fine-grained dynamics
 
 Each experiment compares training **with** and **without** Batch Normalization, examining:
-- Convergence speed
 - Accuracy
 - Loss stability during training
 - Gradient flow and optimization dynamics
-- Activation distribution changes
 
 ## 🗂️ Project Structure
 
@@ -56,7 +54,7 @@ All experiments are organized in the `notebook/` directory with a systematic str
 1. **`experiment_fashion.ipynb`** - Epoch-level analysis
    - Training MLP on Fashion-MNIST
    - Compares with/without Batch Normalization
-   - Metrics per epoch: Loss, Accuracy
+   - Metrics per epoch: Loss, Accuracy, Gradient norms
 
 2. **`experiment_fashion_by_steps.ipynb`** - Step-level analysis
    - Same MLP but tracks metrics at every batch (step)
@@ -93,7 +91,7 @@ All experiments are organized in the `notebook/` directory with a systematic str
    - Fine-grained step analysis for CNN on CIFAR-10
    - Shows layer-wise evolution during training
 
-#### Special Analysis (CIFAR-10)
+#### Special Analysis ( on CIFAR-10 )
 - **`experiment_activation_distribution.ipynb`**
   - Deep dive into Batch Normalization's effect on activation distributions
   - Visualizes how internal representations change
