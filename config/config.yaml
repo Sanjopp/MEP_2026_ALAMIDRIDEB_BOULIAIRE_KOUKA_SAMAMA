@@ -1,0 +1,13 @@
+s3:
+  bucket: mep-2026-alamidribeb-bouliaire-kouka-samama
+  region: eu-north-1
+  prefix: datasets
+
+datasets:
+  cifar10:
+    s3_subdir: cifar-10-batches-py
+    local_subdir: cifar-10-batches-py
+
+  fashion_mnist:
+    s3_subdir: fashion-mnist
+    local_subdir: fashion-mnist
