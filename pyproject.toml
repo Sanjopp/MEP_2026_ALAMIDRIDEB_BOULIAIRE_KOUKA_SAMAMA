@@ -1,0 +1,43 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "mep_2026_alamidrideb_bouliaire_kouka_samama"
+version = "0.0.1"
+description = "Mise en production du projet d'Advanced ML"
+authors = [
+  { name = "Z. Bouliaire, H. Kouka, Z. Alami Drideb, R. Samama" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "awscli",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "pip",
+    "python-dotenv",
+    "ruff",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+    "tqdm>=4.67.3",
+]
+requires-python = "~=3.13.0"
+
+
+[tool.ruff]
+line-length = 99
+src = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
+include = ["pyproject.toml", "mep_2026_alamidrideb_bouliaire_kouka_samama/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]  # Add import sorting
+
+[tool.ruff.lint.isort]
+known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
+force-sort-within-sections = true
+
