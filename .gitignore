@@ -43,11 +43,23 @@ share/python-wheels/
 .DS_Store
 Thumbs.db
 
-# Data (if large)
-# DATA/
+# Data (large / generated / local)
+DATA/
+data/
+mlruns/
+artifacts/
+
+# Secrets (never commit)
+.env
+*.env
+config/secrets.env
+
+# Windows download metadata
 *.Zone.Identifier
 # Windows NTFS alternate data streams
 *:Zone.Identifier
+
+# Model/data artifacts (project-specific)
 minivgg_cifar10_best.pt
 cifar-10-python.tar.gz
 
