@@ -49,7 +49,8 @@ def preprocess_cifar(X):
     X = X.reshape(-1, 3, 32, 32)
 
     # Per-channel normalization (standard CIFAR-10)
-    mean = X.mean(axis=(0, 2, 3)).reshape(1, 3, 1, 1)
-    std = X.std(axis=(0, 2, 3)).reshape(1, 3, 1, 1)
+    mean = np.array([0.4914, 0.4822, 0.4465]).reshape(1, 3, 1, 1)
+    std = np.array([0.2023, 0.1994, 0.2010]).reshape(1, 3, 1, 1)
+
     X = (X - mean) / std
     return torch.from_numpy(X).float()
