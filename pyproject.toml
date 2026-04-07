@@ -35,9 +35,22 @@ src = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
 include = ["pyproject.toml", "mep_2026_alamidrideb_bouliaire_kouka_samama/**/*.py"]
 
 [tool.ruff.lint]
-extend-select = ["I"]  # Add import sorting
+extend-select = [
+  "I",    # isort
+  "B",    # bugbear
+  "UP",   # pyupgrade
+  "SIM",  # simplify
+  "N",    # pep8-naming
+  "RUF",  # règles Ruff natives
+]
+ignore = [
+  "SIM108", # ternaire forcé — parfois moins lisible en ML
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
 force-sort-within-sections = true
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
