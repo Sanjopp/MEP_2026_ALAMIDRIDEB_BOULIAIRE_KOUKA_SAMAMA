@@ -59,3 +59,30 @@ Mise en production du projet d'Advanced ML
 
 --------
 
+## Données
+
+### Où sont les données ?
+
+Les datasets sont stockés sur S3 :
+
+| Dataset      | Chemin S3                                          | Taille |
+|--------------|----------------------------------------------------|--------|
+| CIFAR-10     | `data-mep-project/DATA/Cifar_10/cifar10_uint8.pt`  | ~150MB |
+| FashionMNIST | `data-mep-project/DATA/FashionMNIST/raw/`          | ~52MB  |
+
+### Comment les récupérer ?
+
+Pour l'installation et le chargement des données, voir [`data/README.md`](data/README.md).
+
+## Variables d'environnement
+
+Voir `config/secrets.env.example` pour la liste complète.
+
+| Variable                | Description             | Défaut             |
+|-------------------------|-------------------------|--------------------|
+| `AWS_ACCESS_KEY_ID`     | Clé d'accès AWS         | —                  |
+| `AWS_SECRET_ACCESS_KEY` | Clé secrète AWS         | —                  |
+| `AWS_DEFAULT_REGION`    | Région du bucket        | `eu-north-1`       |
+| `S3_BUCKET`             | Nom du bucket           | `data-mep-project` |
+| `BATCH_SIZE`            | Taille de batch         | `128`              |
+| `NUM_WORKERS`           | Workers DataLoader      | `0`                |
