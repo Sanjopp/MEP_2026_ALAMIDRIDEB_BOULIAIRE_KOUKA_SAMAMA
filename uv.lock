@@ -907,10 +907,14 @@ dependencies = [
     { name = "numpy" },
     { name = "pip" },
     { name = "python-dotenv" },
-    { name = "ruff" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -922,11 +926,13 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.2" },
     { name = "pip" },
     { name = "python-dotenv" },
-    { name = "ruff" },
     { name = "torch", specifier = ">=2.10.0" },
     { name = "torchvision", specifier = ">=0.25.0" },
     { name = "tqdm", specifier = ">=4.67.3" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff" }]
 
 [[package]]
 name = "mistune"

@@ -23,13 +23,16 @@ dependencies = [
     "numpy>=2.4.2",
     "pip",
     "python-dotenv",
-    "ruff",
     "torch>=2.10.0",
     "torchvision>=0.25.0",
     "tqdm>=4.67.3",
 ]
 requires-python = "~=3.13.0"
 
+[dependency-groups]
+dev = [
+    "ruff",
+]
 
 [tool.ruff]
 line-length = 99
@@ -38,15 +41,15 @@ include = ["pyproject.toml", "mep_2026_alamidrideb_bouliaire_kouka_samama/**/*.p
 
 [tool.ruff.lint]
 extend-select = [
-  "I",    # isort
-  "B",    # bugbear
-  "UP",   # pyupgrade
-  "SIM",  # simplify
-  "N",    # pep8-naming
-  "RUF",  # règles Ruff natives
+  "I",
+  "B",
+  "UP",
+  "SIM",
+  "N",
+  "RUF",
 ]
 ignore = [
-  "SIM108", # ternaire forcé — parfois moins lisible en ML
+  "SIM108",
 ]
 
 [tool.ruff.lint.isort]
