@@ -19,7 +19,7 @@ from config.settings import (
     S3_BUCKET,
     S3_KEYS,
 )
-from data.data_io import load_bytes_from_s3
+from data.data_io import load_idx_artifact
 
 logger = logging.getLogger(__name__)
 
@@ -105,18 +105,6 @@ class FashionMNISTUInt8Dataset(Dataset):
 
 # ── Chargement ────────────────────────────────────────────────────────────────
 
-def _get_bytes(
-    s3_key: str,
-    local_path: Union[Path, None],
-    force_local: bool,
-) -> bytes:
-    """Récupère les bytes depuis S3 ou local selon le contexte."""
-    if force_local or (local_path and Path(local_path).exists()):
-        logger.info("Chargement local : %s", local_path)
-        return Path(local_path).read_bytes()
-    return load_bytes_from_s3(S3_BUCKET, s3_key)
-
-
 def _load_split(
     images_key: str,
     labels_key: str,
@@ -125,26 +113,30 @@ def _load_split(
     force_local: bool,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Charge et parse une split (train ou test)."""
-    X = _parse_idx_images(_get_bytes(images_key, images_local, force_local))
-    y = _parse_idx_labels(_get_bytes(labels_key, labels_local, force_local))
+    X = _parse_idx_images(load_idx_artifact(S3_BUCKET, images_key, images_local, force_local))
+    y = _parse_idx_labels(load_idx_artifact(S3_BUCKET, labels_key, labels_local, force_local))
     return X, y
 
 
 def load_fashion_mnist(
-    batch_size: int  = BATCH_SIZE,
+    batch_size: int = BATCH_SIZE,
     num_workers: int = NUM_WORKERS,
+    val_split: float = 0.2,
     force_local: bool = False,
-) -> tuple[DataLoader, DataLoader]:
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
-    Retourne les DataLoaders train et test pour FashionMNIST.
+    Retourne les DataLoaders train, val et test pour FashionMNIST.
+
+    Split: Train (80%) | Val (20%) | Test (10k séparé)
 
     Args:
         batch_size:   Taille de batch.
         num_workers:  Nombre de workers DataLoader.
+        val_split:    Proportion du train set pour validation (défaut 0.2 = 20%).
         force_local:  Bypass S3, charge depuis LOCAL_PATHS.
 
     Returns:
-        Tuple (train_loader, test_loader).
+        Tuple (train_loader, val_loader, test_loader).
     """
     X_train, y_train = _load_split(
         images_key   = S3_KEYS["fashion_train_images"],
@@ -161,17 +153,45 @@ def load_fashion_mnist(
         force_local  = force_local,
     )
 
-    # Calcul depuis le train set uniquement (jamais depuis le test !)
+    # Calcul mean/std depuis le train set uniquement
     mean, std = _compute_mean_std(X_train)
+
+    # Split train en train/val
+    n_train = len(y_train)
+    n_val = int(n_train * val_split)
+    n_train_actual = n_train - n_val
+
+    logger.info(f"FashionMNIST Split: Train={n_train_actual} | Val={n_val} | Test={len(y_test)}")
+
+    # Créer les datasets
+    train_ds = FashionMNISTUInt8Dataset(
+        X_train[:n_train_actual],
+        y_train[:n_train_actual],
+        mean,
+        std,
+    )
+    val_ds = FashionMNISTUInt8Dataset(
+        X_train[n_train_actual:],
+        y_train[n_train_actual:],
+        mean,
+        std,
+    )
+    test_ds = FashionMNISTUInt8Dataset(
+        X_test,
+        y_test,
+        mean,
+        std,
+    )
 
     pin_memory = torch.cuda.is_available()
     loader_kwargs = dict(
-        batch_size  = batch_size,
-        num_workers = num_workers,
-        pin_memory  = pin_memory,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
     )
 
     return (
-        DataLoader(FashionMNISTUInt8Dataset(X_train, y_train, mean, std), shuffle=True,  **loader_kwargs),
-        DataLoader(FashionMNISTUInt8Dataset(X_test,  y_test,  mean, std), shuffle=False, **loader_kwargs),
+        DataLoader(train_ds, shuffle=True, **loader_kwargs),
+        DataLoader(val_ds, shuffle=False, **loader_kwargs),
+        DataLoader(test_ds, shuffle=False, **loader_kwargs),
     )

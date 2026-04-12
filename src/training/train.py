@@ -17,6 +17,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from dotenv import load_dotenv 
+load_dotenv()  # Load environment variables from .env file
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -44,19 +46,24 @@ def load_dataset(config: ConfigManager, device: torch.device):
     dataset_name = config.get("dataset.name")
     batch_size = config.get("dataset.batch_size")
     num_workers = config.get("dataset.num_workers")
+    val_split = config.get("dataset.val_split", 0.2)
 
     logging.info(f"Loading {dataset_name} dataset...")
 
     if dataset_name == "cifar10":
-        train_loader, val_loader = load_cifar10(
-            batch_size=batch_size, num_workers=num_workers
+        train_loader, val_loader, test_loader = load_cifar10(
+            batch_size=batch_size, 
+            num_workers=num_workers,
+            val_split=val_split,
         )
         input_dim = 3072
         in_channels = 3
         input_size = 32
     elif dataset_name == "fashion_mnist":
-        train_loader, val_loader = load_fashion_mnist(
-            batch_size=batch_size, num_workers=num_workers
+        train_loader, val_loader, test_loader = load_fashion_mnist(
+            batch_size=batch_size, 
+            num_workers=num_workers,
+            val_split=val_split,
         )
         input_dim = 784
         in_channels = 1
@@ -64,9 +71,9 @@ def load_dataset(config: ConfigManager, device: torch.device):
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
-    logging.info(f"Dataset loaded. Batches: train={len(train_loader)}, val={len(val_loader)}")
+    logging.info(f"Dataset loaded. Batches: train={len(train_loader)}, val={len(val_loader)}, test={len(test_loader)}")
 
-    return train_loader, val_loader, input_dim, in_channels, input_size
+    return train_loader, val_loader, test_loader, input_dim, in_channels, input_size
 
 
 def build_model(config: ConfigManager, input_dim: int, in_channels: int, input_size: int, device: torch.device) -> nn.Module:
@@ -195,7 +202,46 @@ def validate(
     avg_accuracy = total_correct / total_samples
 
     return avg_loss, avg_accuracy
+@torch.no_grad()
+def evaluate_final(
+    model: nn.Module,
+    test_loader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+) -> tuple:
+    """
+    Évaluation finale sur le TEST SET.
+    Ce set n'a JAMAIS été utilisé pendant l'entraînement.
+    
+    Returns:
+        Tuple (test_loss, test_accuracy)
+    """
+    model.eval()
+    total_loss = 0.0
+    total_correct = 0
+    total_samples = 0
 
+    pbar = tqdm(test_loader, desc="Evaluating Test Set")
+
+    for data, target in pbar:
+        data, target = data.to(device), target.to(device)
+
+        output = model(data)
+        loss = criterion(output, target)
+
+        total_loss += loss.item() * data.size(0)
+        pred = output.argmax(dim=1)
+        total_correct += pred.eq(target).sum().item()
+        total_samples += data.size(0)
+
+        avg_loss = total_loss / total_samples
+        accuracy = total_correct / total_samples
+        pbar.set_postfix({"loss": f"{avg_loss:.4f}", "acc": f"{accuracy:.4f}"})
+
+    avg_loss = total_loss / total_samples
+    avg_accuracy = total_correct / total_samples
+
+    return avg_loss, avg_accuracy
 
 def train(config: ConfigManager) -> None:
     """Main training function."""
@@ -209,7 +255,7 @@ def train(config: ConfigManager) -> None:
     device = get_device()
 
     # Load dataset
-    train_loader, val_loader, input_dim, in_channels, input_size = load_dataset(config, device)
+    train_loader, val_loader, test_loader, input_dim, in_channels, input_size = load_dataset(config, device)
 
     # Build model
     model = build_model(config, input_dim, in_channels, input_size, device)
@@ -261,13 +307,15 @@ def train(config: ConfigManager) -> None:
         )
 
     logger.info("Training completed!")
-    return model, metrics_tracker
+    return model, metrics_tracker, test_loader
 
 
 def save_results(
     model: nn.Module,
     metrics_tracker: MetricsTracker,
     config: ConfigManager,
+    test_loss: float = None,
+    test_acc: float = None,
 ) -> None:
     """Save model, metrics, and configuration."""
     save_dir = config.get("logging.save_dir")
@@ -296,16 +344,31 @@ def save_results(
     # Save config
     checkpoint_mgr.save_config(config.config, "config.json")
 
-    # Save summary
+    # Get metrics history
+    metrics_dict = metrics_tracker.get_dict()
+    
+    # Build comprehensive summary
     summary = {
-        "experiment_id": experiment_id,
-        "timestamp": timestamp,
+        "dataset": dataset,
+        "model_type": model_type,
+        "use_bn": use_bn,
+        "optimizer": config.get("training.optimizer"),
+        "learning_rate": config.get("training.learning_rate"),
+        "num_epochs": config.get("training.num_epochs"),
+        "seed": config.get("training.seed"),
+        # Final epoch metrics
+        "final_train_loss": metrics_dict["train_loss"][-1] if metrics_dict["train_loss"] else None,
+        "final_train_acc": metrics_dict["train_acc"][-1] if metrics_dict["train_acc"] else None,
+        "final_val_loss": metrics_dict["val_loss"][-1] if metrics_dict["val_loss"] else None,
+        "final_val_acc": metrics_dict["val_acc"][-1] if metrics_dict["val_acc"] else None,
+        # Best metrics
+        "best_train_acc": max(metrics_dict["train_acc"]) if metrics_dict["train_acc"] else 0,
+        "best_val_acc": max(metrics_dict["val_acc"]) if metrics_dict["val_acc"] else 0,
+        # Test metrics
+        "test_loss": test_loss,
+        "test_acc": test_acc,
+        # Config for later analysis
         "config": config.config,
-        "final_train_loss": metrics_tracker.get_dict()["train_loss"][-1],
-        "final_train_acc": metrics_tracker.get_dict()["train_acc"][-1],
-        "final_val_loss": metrics_tracker.get_dict()["val_loss"][-1],
-        "final_val_acc": metrics_tracker.get_dict()["val_acc"][-1],
-        "best_val_acc": max(metrics_tracker.get_dict()["val_acc"]),
     }
     checkpoint_mgr.save_summary(summary, "summary.json")
 
@@ -336,11 +399,21 @@ def main():
 
     # Train
     try:
-        model, metrics_tracker = train(config)
+        model, metrics_tracker, test_loader = train(config)
+
+        # FINAL EVALUATION ON TEST SET
+        device = get_device()
+        criterion = nn.CrossEntropyLoss()
+        test_loss, test_acc = evaluate_final(model, test_loader, criterion, device)
+
+        logger.info("=" * 80)
+        logger.info("FINAL TEST SET EVALUATION")
+        logger.info(f"Test Loss: {test_loss:.4f} | Test Accuracy: {test_acc:.4f}")
+        logger.info("=" * 80)
 
         # Save results
         if config.get("logging.save_model") or config.get("logging.save_metrics"):
-            save_results(model, metrics_tracker, config)
+            save_results(model, metrics_tracker, config, test_loss, test_acc)
 
         logger.info("=" * 80)
         logger.info("TRAINING SUCCESSFUL")
