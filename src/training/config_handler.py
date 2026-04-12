@@ -50,6 +50,7 @@ class ConfigManager:
                 "name": "cifar10",
                 "batch_size": 128,
                 "num_workers": 0,
+                "val_split": 0.2,
             },
             "model": {
                 "type": "cnn",
@@ -97,7 +98,8 @@ class ConfigManager:
             self.config["dataset"]["name"] = cli_updates["dataset"]
         if "batch_size" in cli_updates:
             self.config["dataset"]["batch_size"] = cli_updates["batch_size"]
-
+        if "val_split" in cli_updates:
+            self.config["dataset"]["val_split"] = cli_updates["val_split"]
         # Update model config
         if "model_type" in cli_updates:
             self.config["model"]["type"] = cli_updates["model_type"]
@@ -178,6 +180,11 @@ def create_argument_parser() -> argparse.ArgumentParser:
         "--batch-size",
         type=int,
         help="Batch size for training",
+    )
+    parser.add_argument(
+        "--val-split",
+        type=float,
+        help="Validation split ratio",
     )
 
     # Model arguments

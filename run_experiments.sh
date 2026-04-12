@@ -36,7 +36,7 @@ exp_batchnorm_comparison() {
         --dataset cifar10 \
         --model-type cnn \
         --use-bn False \
-        --num-epochs 50 \
+        --num-epochs 10 \
         --seed 42 \
         --save-dir "$RESULTS_DIR/exp1"
     
@@ -45,7 +45,7 @@ exp_batchnorm_comparison() {
         --dataset cifar10 \
         --model-type cnn \
         --use-bn True \
-        --num-epochs 50 \
+        --num-epochs 10 \
         --seed 42 \
         --save-dir "$RESULTS_DIR/exp1"
     
@@ -65,7 +65,7 @@ exp_architecture_comparison() {
         --dataset fashion_mnist \
         --model-type mlp \
         --use-bn True \
-        --num-epochs 30 \
+        --num-epochs 10 \
         --seed 42 \
         --save-dir "$RESULTS_DIR/exp2"
     
@@ -74,7 +74,7 @@ exp_architecture_comparison() {
         --dataset fashion_mnist \
         --model-type cnn \
         --use-bn True \
-        --num-epochs 30 \
+        --num-epochs 10 \
         --seed 42 \
         --save-dir "$RESULTS_DIR/exp2"
     
@@ -96,7 +96,7 @@ exp_learning_rate_sweep() {
             --model-type cnn \
             --use-bn True \
             --learning-rate $lr \
-            --num-epochs 30 \
+            --num-epochs 10 \
             --seed 42 \
             --save-dir "$RESULTS_DIR/exp3"
     done
@@ -118,7 +118,7 @@ exp_multiple_seeds() {
             --dataset cifar10 \
             --model-type cnn \
             --use-bn True \
-            --num-epochs 40 \
+            --num-epochs 10 \
             --seed $seed \
             --save-dir "$RESULTS_DIR/exp4"
     done
@@ -151,7 +151,7 @@ exp_comprehensive() {
                     --dataset $dataset \
                     --model-type $model \
                     --use-bn $use_bn \
-                    --num-epochs 25 \
+                    --num-epochs 10 \
                     --seed 42 \
                     --save-dir "$RESULTS_DIR/exp5"
             done

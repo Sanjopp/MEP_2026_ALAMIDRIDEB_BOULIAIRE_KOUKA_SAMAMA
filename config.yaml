@@ -6,6 +6,7 @@ dataset:
   name: "cifar10"  # cifar10 or fashion_mnist
   batch_size: 128
   num_workers: 0
+  val_split: 0.2
 
 # Model configuration
 model:
@@ -28,7 +29,7 @@ model:
 
 # Training configuration
 training:
-  num_epochs: 50
+  num_epochs: 10
   learning_rate: 0.001
   optimizer: "adam"  # adam or sgd
   seed: 42
