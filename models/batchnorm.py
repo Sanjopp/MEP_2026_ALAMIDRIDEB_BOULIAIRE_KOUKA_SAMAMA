@@ -1,44 +1,55 @@
+"""Custom BatchNorm1D implementation from scratch using PyTorch autograd."""
+
 import torch
 import torch.nn as nn
 from torch.autograd import Function
 
 
 class BatchNormFunction(Function):
+    """Custom autograd function for Batch Normalization."""
+
     @staticmethod
     def forward(ctx, x, gamma, beta, eps):
         mu = x.mean(dim=0)
         var = x.var(dim=0, unbiased=False)
+        std_inv = 1.0 / torch.sqrt(var + eps)
 
-        x_hat = (x - mu) / torch.sqrt(var + eps)
+        x_centered = x - mu
+        x_hat = x_centered * std_inv
         y = gamma * x_hat + beta
 
-        ctx.save_for_backward(x_hat, gamma, var)
+        # Save tensors needed for backward
+        ctx.save_for_backward(x_centered, x_hat, gamma, std_inv)
         ctx.eps = eps
         return y
 
     @staticmethod
     def backward(ctx, grad_out):
-        x_hat, gamma, var = ctx.saved_tensors
-        eps = ctx.eps
+        x_centered, x_hat, gamma, std_inv = ctx.saved_tensors
         N = grad_out.size(0)
 
+        # Gradients for gamma and beta
         dbeta = grad_out.sum(dim=0)
         dgamma = (grad_out * x_hat).sum(dim=0)
 
+        # Gradient for x (corrected formula)
         dxhat = grad_out * gamma
-        dvar = (-0.5 * (dxhat * x_hat).sum(dim=0)) / (var + eps)
-        dmu = -(dxhat / torch.sqrt(var + eps)).sum(dim=0)
-
         dx = (
-            dxhat / torch.sqrt(var + eps)
-            + dvar * 2 * x_hat / N
-            + dmu / N
+            std_inv
+            / N
+            * (
+                N * dxhat
+                - dxhat.sum(dim=0)
+                - x_hat * (dxhat * x_hat).sum(dim=0)
+            )
         )
 
         return dx, dgamma, dbeta, None
 
 
 class BatchNorm1D(nn.Module):
+    """Batch Normalization layer for 1D inputs (fully-connected layers)."""
+
     def __init__(self, dim, eps=1e-5):
         super().__init__()
         self.gamma = nn.Parameter(torch.ones(dim))

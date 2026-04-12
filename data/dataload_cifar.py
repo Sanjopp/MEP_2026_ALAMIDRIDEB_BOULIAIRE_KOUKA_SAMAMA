@@ -50,18 +50,22 @@ class CIFAR10UInt8Dataset(Dataset):
 def load_cifar10(
     batch_size: int = BATCH_SIZE,
     num_workers: int = NUM_WORKERS,
+    val_split: float = 0.2,
     force_local: bool = False,
-) -> tuple[DataLoader, DataLoader]:
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
-    Retourne les DataLoaders train et test pour CIFAR-10.
+    Retourne les DataLoaders train, val et test pour CIFAR-10.
+
+    Split: Train (80%) | Val (20%) | Test (10k séparé)
 
     Args:
         batch_size:   Taille de batch.
         num_workers:  Nombre de workers DataLoader.
+        val_split:    Proportion du train set pour validation (défaut 0.2 = 20%).
         force_local:  Bypass S3, charge depuis LOCAL_PATHS.
 
     Returns:
-        Tuple (train_loader, test_loader).
+        Tuple (train_loader, val_loader, test_loader).
     """
     artifact = load_artifact(
         bucket=S3_BUCKET,
@@ -70,17 +74,38 @@ def load_cifar10(
         force_local=force_local,
     )
 
+    X_train_uint8 = artifact["X_train_uint8"]
+    y_train = artifact["y_train"]
+    X_test_uint8 = artifact["X_test_uint8"]
+    y_test = artifact["y_test"]
+    mean = artifact["mean"]
+    std = artifact["std"]
+
+    # Split train en train/val
+    n_train = len(y_train)
+    n_val = int(n_train * val_split)
+    n_train_actual = n_train - n_val
+
+    logger.info(f"CIFAR-10 Split: Train={n_train_actual} | Val={n_val} | Test={len(y_test)}")
+
+    # Créer les datasets
     train_ds = CIFAR10UInt8Dataset(
-        artifact["X_train_uint8"],
-        artifact["y_train"],
-        artifact["mean"],
-        artifact["std"],
+        X_train_uint8[:n_train_actual],
+        y_train[:n_train_actual],
+        mean,
+        std,
+    )
+    val_ds = CIFAR10UInt8Dataset(
+        X_train_uint8[n_train_actual:],
+        y_train[n_train_actual:],
+        mean,
+        std,
     )
     test_ds = CIFAR10UInt8Dataset(
-        artifact["X_test_uint8"],
-        artifact["y_test"],
-        artifact["mean"],
-        artifact["std"],
+        X_test_uint8,
+        y_test,
+        mean,
+        std,
     )
 
     pin_memory = torch.cuda.is_available()
@@ -91,6 +116,7 @@ def load_cifar10(
     )
 
     return (
-        DataLoader(train_ds, shuffle=True,  **loader_kwargs),
-        DataLoader(test_ds,  shuffle=False, **loader_kwargs),
+        DataLoader(train_ds, shuffle=True, **loader_kwargs),
+        DataLoader(val_ds, shuffle=False, **loader_kwargs),
+        DataLoader(test_ds, shuffle=False, **loader_kwargs),
     )

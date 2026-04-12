@@ -38,9 +38,35 @@ def load_bytes_from_s3(bucket: str, key: str) -> bytes:
         ) from exc
 
 
-def load_tensor_from_s3(bucket: str, key: str) -> dict:
+def save_bytes_to_local(data: bytes, path: Union[str, Path]) -> None:
     """
-    Charge un fichier .pt depuis S3.
+    Sauvegarde des bytes dans un fichier local.
+    Crée les répertoires s'ils n'existent pas.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(data)
+    logger.info("Fichier sauvegardé localement : %s", path)
+
+
+def load_bytes_from_local(path: Union[str, Path]) -> bytes:
+    """
+    Charge des bytes depuis le disque local (pour IDX files).
+    """
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Fichier introuvable : {path}")
+    logger.info("Chargement bytes local depuis %s", path)
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def load_tensor_from_s3(
+    bucket: str, key: str, local_path: Union[str, Path, None] = None
+) -> dict:
+    """
+    Charge un fichier .pt depuis S3 et le sauvegarde localement.
     Utilisé pour CIFAR-10.
     """
     logger.info("Chargement .pt depuis s3://%s/%s", bucket, key)
@@ -48,7 +74,17 @@ def load_tensor_from_s3(bucket: str, key: str) -> dict:
         data = load_bytes_from_s3(bucket, key)
     except RuntimeError:
         raise
-    return torch.load(BytesIO(data), map_location="cpu", weights_only=True)
+    
+    tensor = torch.load(BytesIO(data), map_location="cpu", weights_only=True)
+    
+    # Sauvegarder localement si local_path fourni
+    if local_path:
+        local_path = Path(local_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(tensor, local_path)
+        logger.info("Fichier sauvegardé localement : %s", local_path)
+    
+    return tensor
 
 
 def load_tensor_from_local(path: Union[str, Path]) -> dict:
@@ -71,8 +107,24 @@ def load_artifact(
     """
     Charge un artefact .pt avec fallback automatique :
       1. Si force_local=True ou si local_path existe → local
-      2. Sinon → S3
+      2. Sinon → S3 (télécharge et sauvegarde en local)
     """
     if force_local or (local_path and Path(local_path).exists()):
         return load_tensor_from_local(local_path)
-    return load_tensor_from_s3(bucket, s3_key)
+    return load_tensor_from_s3(bucket, s3_key, local_path)
+
+
+def load_idx_artifact(
+    bucket: str,
+    s3_key: str,
+    local_path: Union[str, Path, None] = None,
+    force_local: bool = False,
+) -> bytes:
+    """Charge fichier IDX avec sauvegarde automatique en local."""
+    if force_local or (local_path and Path(local_path).exists()):
+        return load_bytes_from_local(local_path)
+    
+    data = load_bytes_from_s3(bucket, s3_key)
+    if local_path:
+        save_bytes_to_local(data, local_path)
+    return data

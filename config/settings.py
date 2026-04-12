@@ -6,7 +6,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # ── S3 ───────────────────────────────────────────────────────────────────────
 S3_BUCKET = os.getenv("S3_BUCKET", "data-mep-project")
-
+VAL_SPLIT = float(os.getenv("VAL_SPLIT", 0.2))
 S3_KEYS = {
     "cifar10":              "DATA/Cifar_10/cifar10_uint8.pt",
     "fashion_train_images": "DATA/FashionMNIST/raw/train-images-idx3-ubyte",
