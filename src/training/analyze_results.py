@@ -10,7 +10,6 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -91,9 +90,9 @@ class ResultsAnalyzer:
         print("=" * 100)
 
         # Group by dataset and model
-        groups: Dict[str, List[tuple]] = {}
+        groups: dict[str, list[tuple]] = {}
 
-        for exp_name, exp_data in self.experiments.items():
+        for _exp_name, exp_data in self.experiments.items():
             config = exp_data["summary"].get("config", {})
             dataset = config.get("dataset", {}).get("name")
             model_type = config.get("model", {}).get("type")
@@ -132,7 +131,7 @@ class ResultsAnalyzer:
 
         colors = plt.cm.Set3(np.linspace(0, 1, num_exps))
 
-        for idx, (exp_name, exp_data) in enumerate(sorted(self.experiments.items())):
+        for idx, (_exp_name, exp_data) in enumerate(sorted(self.experiments.items())):
             metrics = exp_data["metrics"]
             summary = exp_data["summary"]
 
@@ -144,7 +143,7 @@ class ResultsAnalyzer:
             label = f"{dataset[:4]}_{model_type[0]}_bn{str(use_bn)[0]}"
 
             # Créer l'axe X avec epochs numérotés à partir de 1
-            if "train_loss" in metrics and metrics["train_loss"]:
+            if metrics.get("train_loss"):
                 epochs = np.arange(1, len(metrics["train_loss"]) + 1)
                 
                 # Training Loss

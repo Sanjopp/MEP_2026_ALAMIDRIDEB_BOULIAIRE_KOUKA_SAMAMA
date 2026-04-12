@@ -1,14 +1,13 @@
 """
 Module de chargement de fichiers depuis S3 ou disque local.
 """
-import logging
 from io import BytesIO
+import logging
 from pathlib import Path
-from typing import Union
 
 import boto3
-import torch
 from botocore.exceptions import BotoCoreError, ClientError
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ def load_bytes_from_s3(bucket: str, key: str) -> bytes:
         ) from exc
 
 
-def save_bytes_to_local(data: bytes, path: Union[str, Path]) -> None:
+def save_bytes_to_local(data: bytes, path: str | Path) -> None:
     """
     Sauvegarde des bytes dans un fichier local.
     Crée les répertoires s'ils n'existent pas.
@@ -50,7 +49,7 @@ def save_bytes_to_local(data: bytes, path: Union[str, Path]) -> None:
     logger.info("Fichier sauvegardé localement : %s", path)
 
 
-def load_bytes_from_local(path: Union[str, Path]) -> bytes:
+def load_bytes_from_local(path: str | Path) -> bytes:
     """
     Charge des bytes depuis le disque local (pour IDX files).
     """
@@ -63,7 +62,7 @@ def load_bytes_from_local(path: Union[str, Path]) -> bytes:
 
 
 def load_tensor_from_s3(
-    bucket: str, key: str, local_path: Union[str, Path, None] = None
+    bucket: str, key: str, local_path: str | Path | None = None
 ) -> dict:
     """
     Charge un fichier .pt depuis S3 et le sauvegarde localement.
@@ -87,7 +86,7 @@ def load_tensor_from_s3(
     return tensor
 
 
-def load_tensor_from_local(path: Union[str, Path]) -> dict:
+def load_tensor_from_local(path: str | Path) -> dict:
     """
     Charge un fichier .pt depuis le disque local.
     """
@@ -101,7 +100,7 @@ def load_tensor_from_local(path: Union[str, Path]) -> dict:
 def load_artifact(
     bucket: str,
     s3_key: str,
-    local_path: Union[str, Path, None] = None,
+    local_path: str | Path | None = None,
     force_local: bool = False,
 ) -> dict:
     """
@@ -117,7 +116,7 @@ def load_artifact(
 def load_idx_artifact(
     bucket: str,
     s3_key: str,
-    local_path: Union[str, Path, None] = None,
+    local_path: str | Path | None = None,
     force_local: bool = False,
 ) -> bytes:
     """Charge fichier IDX avec sauvegarde automatique en local."""

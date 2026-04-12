@@ -6,7 +6,7 @@ Handles loading from YAML files and CLI argument overrides.
 import argparse
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -35,7 +35,7 @@ class ConfigManager:
             config_path: Path to YAML configuration file
         """
         self.config_path = Path(config_path)
-        self.config: Dict[str, Any] = {}
+        self.config: dict[str, Any] = {}
         self.load_yaml()
 
     def load_yaml(self) -> None:
@@ -45,7 +45,7 @@ class ConfigManager:
             self.config = self._get_defaults()
             return
 
-        with open(self.config_path, "r") as f:
+        with open(self.config_path) as f:
             loaded = yaml.safe_load(f)
             if loaded is None:
                 self.config = self._get_defaults()
@@ -54,7 +54,7 @@ class ConfigManager:
         logger.info(f"Loaded configuration from {self.config_path}")
 
     @staticmethod
-    def _get_defaults() -> Dict[str, Any]:
+    def _get_defaults() -> dict[str, Any]:
         """Return default configuration."""
         return {
             "dataset": {

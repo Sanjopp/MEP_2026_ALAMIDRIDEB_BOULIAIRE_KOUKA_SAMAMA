@@ -6,19 +6,17 @@ Usage:
     python train.py --dataset cifar10 --model-type cnn --use-bn True --num-epochs 50
 """
 
-import json
-import logging
-import sys
 from datetime import datetime
+import logging
 from pathlib import Path
+import sys
 
+from dotenv import load_dotenv
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from dotenv import load_dotenv 
-load_dotenv()  # Load environment variables from .env file
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -31,6 +29,7 @@ from src.training.checkpoint import ModelCheckpoint
 from src.training.config_handler import ConfigManager, create_argument_parser
 from src.training.reproducibility import MetricsTracker, get_device, set_seed
 
+load_dotenv()  # Load environment variables from .env file
 
 def setup_logging(verbose: bool = True) -> None:
     """Setup logging configuration."""
@@ -314,8 +313,8 @@ def save_results(
     model: nn.Module,
     metrics_tracker: MetricsTracker,
     config: ConfigManager,
-    test_loss: float = None,
-    test_acc: float = None,
+    test_loss: float | None = None,
+    test_acc: float | None = None,
 ) -> None:
     """Save model, metrics, and configuration."""
     save_dir = config.get("logging.save_dir")

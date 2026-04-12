@@ -4,7 +4,6 @@ Reproducibility utilities for ensuring deterministic behavior.
 
 import logging
 import os
-from typing import Optional
 
 import numpy as np
 import torch
@@ -74,11 +73,11 @@ class MetricsTracker:
 
     def update(
         self,
-        train_loss: Optional[float] = None,
-        train_acc: Optional[float] = None,
-        val_loss: Optional[float] = None,
-        val_acc: Optional[float] = None,
-        grad_norm: Optional[float] = None,
+        train_loss: float | None = None,
+        train_acc: float | None = None,
+        val_loss: float | None = None,
+        val_acc: float | None = None,
+        grad_norm: float | None = None,
     ) -> None:
         """
         Update metrics.

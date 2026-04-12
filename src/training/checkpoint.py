@@ -5,7 +5,7 @@ Model and checkpoint management utilities.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import torch
 
@@ -51,7 +51,7 @@ class ModelCheckpoint:
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         epoch: int,
-        metrics: Dict[str, Any],
+        metrics: dict[str, Any],
         filename: str = "checkpoint.pt",
     ) -> Path:
         """
@@ -107,7 +107,7 @@ class ModelCheckpoint:
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         filename: str = "checkpoint.pt",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Load training checkpoint.
 
@@ -136,7 +136,7 @@ class ModelCheckpoint:
 
     def save_metrics(
         self,
-        metrics: Dict[str, Any],
+        metrics: dict[str, Any],
         filename: str = "metrics.json",
     ) -> Path:
         """
@@ -167,7 +167,7 @@ class ModelCheckpoint:
 
     def save_config(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         filename: str = "config.json",
     ) -> Path:
         """
@@ -189,7 +189,7 @@ class ModelCheckpoint:
 
     def save_summary(
         self,
-        summary: Dict[str, Any],
+        summary: dict[str, Any],
         filename: str = "summary.json",
     ) -> Path:
         """
