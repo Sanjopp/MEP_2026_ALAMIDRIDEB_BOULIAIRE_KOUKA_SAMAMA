@@ -34,15 +34,7 @@ class BatchNormFunction(Function):
 
         # Gradient for x (corrected formula)
         dxhat = grad_out * gamma
-        dx = (
-            std_inv
-            / n
-            * (
-                n * dxhat
-                - dxhat.sum(dim=0)
-                - x_hat * (dxhat * x_hat).sum(dim=0)
-            )
-        )
+        dx = std_inv / n * (n * dxhat - dxhat.sum(dim=0) - x_hat * (dxhat * x_hat).sum(dim=0))
 
         return dx, dgamma, dbeta, None
 

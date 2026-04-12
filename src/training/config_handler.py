@@ -12,13 +12,14 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
+
 def str_to_bool(value):
     """Convert string to boolean."""
     if isinstance(value, bool):
         return value
-    if value.lower() in {'true', '1', 'yes', 'y'}:
+    if value.lower() in {"true", "1", "yes", "y"}:
         return True
-    elif value.lower() in {'false', '0', 'no', 'n'}:
+    elif value.lower() in {"false", "0", "no", "n"}:
         return False
     else:
         raise argparse.ArgumentTypeError(f"Invalid boolean value: {value}")
@@ -164,7 +165,8 @@ class ConfigManager:
     def __repr__(self) -> str:
         """String representation of configuration."""
         return yaml.dump(self.config, default_flow_style=False)
-    
+
+
 def create_argument_parser() -> argparse.ArgumentParser:
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(

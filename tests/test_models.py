@@ -103,9 +103,12 @@ class TestCNN:
         from models.cnn import ConvMLP
 
         model = ConvMLP(
-            in_channels=3, input_size=32,
-            conv_channels=(32, 64), hidden_dims=(128,),
-            num_classes=10, use_bn=False,
+            in_channels=3,
+            input_size=32,
+            conv_channels=(32, 64),
+            hidden_dims=(128,),
+            num_classes=10,
+            use_bn=False,
         )
         x = torch.randn(8, 3, 32, 32)
         y = model(x)
@@ -116,9 +119,12 @@ class TestCNN:
         from models.cnn import ConvMLP
 
         model = ConvMLP(
-            in_channels=1, input_size=28,
-            conv_channels=(32, 64), hidden_dims=(128,),
-            num_classes=10, use_bn=True,
+            in_channels=1,
+            input_size=28,
+            conv_channels=(32, 64),
+            hidden_dims=(128,),
+            num_classes=10,
+            use_bn=True,
         )
         x = torch.randn(8, 1, 28, 28)
         y = model(x)
@@ -129,9 +135,12 @@ class TestCNN:
         from models.cnn import ConvMLP
 
         model = ConvMLP(
-            in_channels=3, input_size=32,
-            conv_channels=(32, 64), hidden_dims=(128,),
-            num_classes=10, use_bn=True,
+            in_channels=3,
+            input_size=32,
+            conv_channels=(32, 64),
+            hidden_dims=(128,),
+            num_classes=10,
+            use_bn=True,
         )
         x = torch.randn(4, 3, 32, 32)
         y = model(x)

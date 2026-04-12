@@ -31,6 +31,7 @@ from src.training.reproducibility import MetricsTracker, get_device, set_seed
 
 load_dotenv()  # Load environment variables from .env file
 
+
 def setup_logging(verbose: bool = True) -> None:
     """Setup logging configuration."""
     level = logging.DEBUG if verbose else logging.INFO
@@ -51,7 +52,7 @@ def load_dataset(config: ConfigManager, device: torch.device):
 
     if dataset_name == "cifar10":
         train_loader, val_loader, test_loader = load_cifar10(
-            batch_size=batch_size, 
+            batch_size=batch_size,
             num_workers=num_workers,
             val_split=val_split,
         )
@@ -60,7 +61,7 @@ def load_dataset(config: ConfigManager, device: torch.device):
         input_size = 32
     elif dataset_name == "fashion_mnist":
         train_loader, val_loader, test_loader = load_fashion_mnist(
-            batch_size=batch_size, 
+            batch_size=batch_size,
             num_workers=num_workers,
             val_split=val_split,
         )
@@ -70,12 +71,16 @@ def load_dataset(config: ConfigManager, device: torch.device):
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
-    logging.info(f"Dataset loaded. Batches: train={len(train_loader)}, val={len(val_loader)}, test={len(test_loader)}")
+    logging.info(
+        f"Dataset loaded. Batches: train={len(train_loader)}, val={len(val_loader)}, test={len(test_loader)}"
+    )
 
     return train_loader, val_loader, test_loader, input_dim, in_channels, input_size
 
 
-def build_model(config: ConfigManager, input_dim: int, in_channels: int, input_size: int, device: torch.device) -> nn.Module:
+def build_model(
+    config: ConfigManager, input_dim: int, in_channels: int, input_size: int, device: torch.device
+) -> nn.Module:
     """Build the model based on configuration."""
     model_type = config.get("model.type")
     use_bn = config.get("model.use_bn")
@@ -128,7 +133,7 @@ def train_epoch(
     total_samples = 0
     grad_norms = []
 
-    pbar = tqdm(train_loader, desc=f"Epoch {epoch+1} [Train]")
+    pbar = tqdm(train_loader, desc=f"Epoch {epoch + 1} [Train]")
 
     for batch_idx, (data, target) in enumerate(pbar):
         data, target = data.to(device), target.to(device)
@@ -143,7 +148,7 @@ def train_epoch(
         for p in model.parameters():
             if p.grad is not None:
                 grad_norm += p.grad.data.norm(2).item() ** 2
-        grad_norm = grad_norm ** 0.5
+        grad_norm = grad_norm**0.5
         grad_norms.append(grad_norm)
 
         optimizer.step()
@@ -157,7 +162,9 @@ def train_epoch(
         if batch_idx % log_interval == 0:
             avg_loss = total_loss / total_samples
             accuracy = total_correct / total_samples
-            pbar.set_postfix({"loss": f"{avg_loss:.4f}", "acc": f"{accuracy:.4f}", "gnorm": f"{grad_norm:.4f}"})
+            pbar.set_postfix(
+                {"loss": f"{avg_loss:.4f}", "acc": f"{accuracy:.4f}", "gnorm": f"{grad_norm:.4f}"}
+            )
 
     avg_loss = total_loss / total_samples
     avg_accuracy = total_correct / total_samples
@@ -180,7 +187,7 @@ def validate(
     total_correct = 0
     total_samples = 0
 
-    pbar = tqdm(val_loader, desc=f"Epoch {epoch+1} [Val]")
+    pbar = tqdm(val_loader, desc=f"Epoch {epoch + 1} [Val]")
 
     for data, target in pbar:
         data, target = data.to(device), target.to(device)
@@ -201,6 +208,8 @@ def validate(
     avg_accuracy = total_correct / total_samples
 
     return avg_loss, avg_accuracy
+
+
 @torch.no_grad()
 def evaluate_final(
     model: nn.Module,
@@ -211,7 +220,7 @@ def evaluate_final(
     """
     Évaluation finale sur le TEST SET.
     Ce set n'a JAMAIS été utilisé pendant l'entraînement.
-    
+
     Returns:
         Tuple (test_loss, test_accuracy)
     """
@@ -242,6 +251,7 @@ def evaluate_final(
 
     return avg_loss, avg_accuracy
 
+
 def train(config: ConfigManager) -> None:
     """Main training function."""
     logger = logging.getLogger(__name__)
@@ -254,7 +264,9 @@ def train(config: ConfigManager) -> None:
     device = get_device()
 
     # Load dataset
-    train_loader, val_loader, test_loader, input_dim, in_channels, input_size = load_dataset(config, device)
+    train_loader, val_loader, test_loader, input_dim, in_channels, input_size = load_dataset(
+        config, device
+    )
 
     # Build model
     model = build_model(config, input_dim, in_channels, input_size, device)
@@ -299,7 +311,7 @@ def train(config: ConfigManager) -> None:
         )
 
         logger.info(
-            f"Epoch {epoch+1:3d} | "
+            f"Epoch {epoch + 1:3d} | "
             f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
             f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | "
             f"Grad Norm: {grad_norm:.4f}"
@@ -345,7 +357,7 @@ def save_results(
 
     # Get metrics history
     metrics_dict = metrics_tracker.get_dict()
-    
+
     # Build comprehensive summary
     summary = {
         "dataset": dataset,

@@ -109,8 +109,5 @@ class MetricsTracker:
         lines = ["Metrics History:"]
         for key, values in self.history.items():
             if values:
-                lines.append(
-                    f"  {key}: {len(values)} entries, "
-                    f"last={values[-1]:.6f}"
-                )
+                lines.append(f"  {key}: {len(values)} entries, last={values[-1]:.6f}")
         return "\n".join(lines)

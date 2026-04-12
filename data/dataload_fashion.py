@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 # ── Parseurs IDX ──────────────────────────────────────────────────────────────
 
+
 def _parse_idx_images(data: bytes) -> torch.Tensor:
     """
     Parse un fichier IDX d'images.
@@ -48,7 +49,7 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
     Returns:
         Tensor long de shape (N,).
     """
-    magic,  = struct.unpack(">II", data[:8])
+    (magic,) = struct.unpack(">II", data[:8])
     if magic != 2049:
         raise ValueError(f"Magic number invalide pour labels IDX : {magic}")
     labels = np.frombuffer(data[8:], dtype=np.uint8)
@@ -56,6 +57,7 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
 
 
 # ── Calcul mean / std ─────────────────────────────────────────────────────────
+
 
 def _compute_mean_std(x_uint8: torch.Tensor) -> tuple[float, float]:
     """
@@ -67,12 +69,13 @@ def _compute_mean_std(x_uint8: torch.Tensor) -> tuple[float, float]:
     """
     x_float = x_uint8.float().div(255.0)
     mean = x_float.mean().item()
-    std  = x_float.std().item()
+    std = x_float.std().item()
     logger.info("Mean calculée : %.4f | Std calculée : %.4f", mean, std)
     return mean, std
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
+
 
 class FashionMNISTUInt8Dataset(Dataset):
     """
@@ -103,6 +106,7 @@ class FashionMNISTUInt8Dataset(Dataset):
 
 
 # ── Chargement ────────────────────────────────────────────────────────────────
+
 
 def _load_split(
     images_key: str,
@@ -138,18 +142,18 @@ def load_fashion_mnist(
         Tuple (train_loader, val_loader, test_loader).
     """
     x_train, y_train = _load_split(
-        images_key   = S3_KEYS["fashion_train_images"],
-        labels_key   = S3_KEYS["fashion_train_labels"],
-        images_local = LOCAL_PATHS["fashion_train_images"],
-        labels_local = LOCAL_PATHS["fashion_train_labels"],
-        force_local  = force_local,
+        images_key=S3_KEYS["fashion_train_images"],
+        labels_key=S3_KEYS["fashion_train_labels"],
+        images_local=LOCAL_PATHS["fashion_train_images"],
+        labels_local=LOCAL_PATHS["fashion_train_labels"],
+        force_local=force_local,
     )
     x_test, y_test = _load_split(
-        images_key   = S3_KEYS["fashion_test_images"],
-        labels_key   = S3_KEYS["fashion_test_labels"],
-        images_local = LOCAL_PATHS["fashion_test_images"],
-        labels_local = LOCAL_PATHS["fashion_test_labels"],
-        force_local  = force_local,
+        images_key=S3_KEYS["fashion_test_images"],
+        labels_key=S3_KEYS["fashion_test_labels"],
+        images_local=LOCAL_PATHS["fashion_test_images"],
+        labels_local=LOCAL_PATHS["fashion_test_labels"],
+        force_local=force_local,
     )
 
     # Calcul mean/std depuis le train set uniquement

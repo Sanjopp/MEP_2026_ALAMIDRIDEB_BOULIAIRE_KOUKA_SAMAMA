@@ -1,6 +1,7 @@
 """
 Module de chargement de fichiers depuis S3 ou disque local.
 """
+
 from io import BytesIO
 import logging
 from pathlib import Path
@@ -32,9 +33,7 @@ def load_bytes_from_s3(bucket: str, key: str) -> bytes:
         obj = s3.get_object(Bucket=bucket, Key=key)
         return obj["Body"].read()
     except (BotoCoreError, ClientError) as exc:
-        raise RuntimeError(
-            f"Erreur S3 lors du chargement de s3://{bucket}/{key}"
-        ) from exc
+        raise RuntimeError(f"Erreur S3 lors du chargement de s3://{bucket}/{key}") from exc
 
 
 def save_bytes_to_local(data: bytes, path: str | Path) -> None:
@@ -61,9 +60,7 @@ def load_bytes_from_local(path: str | Path) -> bytes:
         return f.read()
 
 
-def load_tensor_from_s3(
-    bucket: str, key: str, local_path: str | Path | None = None
-) -> dict:
+def load_tensor_from_s3(bucket: str, key: str, local_path: str | Path | None = None) -> dict:
     """
     Charge un fichier .pt depuis S3 et le sauvegarde localement.
     Utilisé pour CIFAR-10.
@@ -73,16 +70,16 @@ def load_tensor_from_s3(
         data = load_bytes_from_s3(bucket, key)
     except RuntimeError:
         raise
-    
+
     tensor = torch.load(BytesIO(data), map_location="cpu", weights_only=True)
-    
+
     # Sauvegarder localement si local_path fourni
     if local_path:
         local_path = Path(local_path)
         local_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(tensor, local_path)
         logger.info("Fichier sauvegardé localement : %s", local_path)
-    
+
     return tensor
 
 
@@ -122,7 +119,7 @@ def load_idx_artifact(
     """Charge fichier IDX avec sauvegarde automatique en local."""
     if force_local or (local_path and Path(local_path).exists()):
         return load_bytes_from_local(local_path)
-    
+
     data = load_bytes_from_s3(bucket, s3_key)
     if local_path:
         save_bytes_to_local(data, local_path)
