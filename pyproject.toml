@@ -23,18 +23,26 @@ dependencies = [
     "numpy>=2.4.2",
     "pip",
     "python-dotenv",
-    "ruff",
+    "pyyaml",
     "torch>=2.10.0",
     "torchvision>=0.25.0",
     "tqdm>=4.67.3",
 ]
 requires-python = "~=3.13.0"
 
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+    "pre-commit",
+    "detect-secrets",
+]
 
+# ── Ruff ──────────────────────────────────────────────────────────────────────
 [tool.ruff]
 line-length = 99
-src = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
-include = ["pyproject.toml", "mep_2026_alamidrideb_bouliaire_kouka_samama/**/*.py"]
+# FIXED: include ALL source directories, not just the empty package
+src = ["models", "data", "src", "config", "mep_2026_alamidrideb_bouliaire_kouka_samama"]
 
 [tool.ruff.lint]
 extend-select = [
@@ -42,17 +50,22 @@ extend-select = [
   "B",    # bugbear
   "UP",   # pyupgrade
   "SIM",  # simplify
-  "N",    # pep8-naming
-  "RUF",  # règles Ruff natives
+  "N",    # naming
+  "RUF",  # ruff-specific
 ]
 ignore = [
-  "SIM108", # ternaire forcé — parfois moins lisible en ML
+  "SIM108",
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama"]
+known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama", "models", "data", "config"]
 force-sort-within-sections = true
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
