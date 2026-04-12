@@ -1,0 +1,43 @@
+# Configuration for training pipeline
+# Can be overridden by command-line arguments
+
+# Dataset configuration
+dataset:
+  name: "cifar10"  # cifar10 or fashion_mnist
+  batch_size: 128
+  num_workers: 0
+
+# Model configuration
+model:
+  type: "cnn"  # mlp or cnn
+  use_bn: true  # Use Batch Normalization
+  
+  # MLP specific
+  mlp:
+    input_dim: 3072  # For CIFAR-10
+    hidden_dims: [512, 256, 128]
+    num_classes: 10
+  
+  # CNN specific
+  cnn:
+    in_channels: 3  # 3 for CIFAR-10, 1 for Fashion-MNIST
+    input_size: 32  # 32 for CIFAR-10, 28 for Fashion-MNIST
+    conv_channels: [32, 64]
+    hidden_dims: [512, 256, 128]
+    num_classes: 10
+
+# Training configuration
+training:
+  num_epochs: 50
+  learning_rate: 0.001
+  optimizer: "adam"  # adam or sgd
+  seed: 42
+
+# Logging and checkpointing
+logging:
+  log_interval: 10  # Log every N batches
+  save_dir: "./results"
+  save_model: true
+  save_metrics: true
+  save_checkpoint: true
+  verbose: true
