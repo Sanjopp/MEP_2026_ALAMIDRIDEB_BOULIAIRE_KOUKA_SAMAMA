@@ -41,7 +41,7 @@ dev = [
 # ── Ruff ──────────────────────────────────────────────────────────────────────
 [tool.ruff]
 line-length = 99
-# FIXED: include ALL source directories, not just the empty package
+# FIXED: include ALL source directories
 src = ["models", "data", "src", "config", "mep_2026_alamidrideb_bouliaire_kouka_samama"]
 
 [tool.ruff.lint]
