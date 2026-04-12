@@ -4,9 +4,8 @@ Les fichiers sont stockés au format IDX binaire sur S3.
 """
 
 import logging
-import struct
 from pathlib import Path
-from typing import Union
+import struct
 
 import numpy as np
 import torch
@@ -25,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Parseurs IDX ──────────────────────────────────────────────────────────────
+
 
 def _parse_idx_images(data: bytes) -> torch.Tensor:
     """
@@ -49,7 +49,7 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
     Returns:
         Tensor long de shape (N,).
     """
-    magic, n = struct.unpack(">II", data[:8])
+    (magic,) = struct.unpack(">II", data[:8])
     if magic != 2049:
         raise ValueError(f"Magic number invalide pour labels IDX : {magic}")
     labels = np.frombuffer(data[8:], dtype=np.uint8)
@@ -58,22 +58,24 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
 
 # ── Calcul mean / std ─────────────────────────────────────────────────────────
 
-def _compute_mean_std(X_uint8: torch.Tensor) -> tuple[float, float]:
+
+def _compute_mean_std(x_uint8: torch.Tensor) -> tuple[float, float]:
     """
     Calcule mean et std depuis le train set uniquement.
-    X_uint8 : (N, 784) uint8 → converti en float32 pour le calcul.
+    x_uint8 : (N, 784) uint8 → converti en float32 pour le calcul.
 
     Returns:
         Tuple (mean, std) en float.
     """
-    X_float = X_uint8.float().div(255.0)
-    mean = X_float.mean().item()
-    std  = X_float.std().item()
+    x_float = x_uint8.float().div(255.0)
+    mean = x_float.mean().item()
+    std = x_float.std().item()
     logger.info("Mean calculée : %.4f | Std calculée : %.4f", mean, std)
     return mean, std
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
+
 
 class FashionMNISTUInt8Dataset(Dataset):
     """
@@ -84,12 +86,12 @@ class FashionMNISTUInt8Dataset(Dataset):
 
     def __init__(
         self,
-        X_uint8: torch.Tensor,
+        x_uint8: torch.Tensor,
         y: torch.Tensor,
         mean: float,
         std: float,
     ) -> None:
-        self.X_uint8 = X_uint8
+        self.x_uint8 = x_uint8
         self.y = y
         self.mean = mean
         self.std = std
@@ -98,24 +100,25 @@ class FashionMNISTUInt8Dataset(Dataset):
         return len(self.y)
 
     def __getitem__(self, idx: int):
-        x = self.X_uint8[idx].float().div(255.0).view(1, 28, 28)
+        x = self.x_uint8[idx].float().div(255.0).view(1, 28, 28)
         x = (x - self.mean) / self.std
         return x, self.y[idx]
 
 
 # ── Chargement ────────────────────────────────────────────────────────────────
 
+
 def _load_split(
     images_key: str,
     labels_key: str,
-    images_local: Union[Path, None],
-    labels_local: Union[Path, None],
+    images_local: Path | None,
+    labels_local: Path | None,
     force_local: bool,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Charge et parse une split (train ou test)."""
-    X = _parse_idx_images(load_idx_artifact(S3_BUCKET, images_key, images_local, force_local))
+    x = _parse_idx_images(load_idx_artifact(S3_BUCKET, images_key, images_local, force_local))
     y = _parse_idx_labels(load_idx_artifact(S3_BUCKET, labels_key, labels_local, force_local))
-    return X, y
+    return x, y
 
 
 def load_fashion_mnist(
@@ -138,23 +141,23 @@ def load_fashion_mnist(
     Returns:
         Tuple (train_loader, val_loader, test_loader).
     """
-    X_train, y_train = _load_split(
-        images_key   = S3_KEYS["fashion_train_images"],
-        labels_key   = S3_KEYS["fashion_train_labels"],
-        images_local = LOCAL_PATHS["fashion_train_images"],
-        labels_local = LOCAL_PATHS["fashion_train_labels"],
-        force_local  = force_local,
+    x_train, y_train = _load_split(
+        images_key=S3_KEYS["fashion_train_images"],
+        labels_key=S3_KEYS["fashion_train_labels"],
+        images_local=LOCAL_PATHS["fashion_train_images"],
+        labels_local=LOCAL_PATHS["fashion_train_labels"],
+        force_local=force_local,
     )
-    X_test, y_test = _load_split(
-        images_key   = S3_KEYS["fashion_test_images"],
-        labels_key   = S3_KEYS["fashion_test_labels"],
-        images_local = LOCAL_PATHS["fashion_test_images"],
-        labels_local = LOCAL_PATHS["fashion_test_labels"],
-        force_local  = force_local,
+    x_test, y_test = _load_split(
+        images_key=S3_KEYS["fashion_test_images"],
+        labels_key=S3_KEYS["fashion_test_labels"],
+        images_local=LOCAL_PATHS["fashion_test_images"],
+        labels_local=LOCAL_PATHS["fashion_test_labels"],
+        force_local=force_local,
     )
 
     # Calcul mean/std depuis le train set uniquement
-    mean, std = _compute_mean_std(X_train)
+    mean, std = _compute_mean_std(x_train)
 
     # Split train en train/val
     n_train = len(y_train)
@@ -165,19 +168,19 @@ def load_fashion_mnist(
 
     # Créer les datasets
     train_ds = FashionMNISTUInt8Dataset(
-        X_train[:n_train_actual],
+        x_train[:n_train_actual],
         y_train[:n_train_actual],
         mean,
         std,
     )
     val_ds = FashionMNISTUInt8Dataset(
-        X_train[n_train_actual:],
+        x_train[n_train_actual:],
         y_train[n_train_actual:],
         mean,
         std,
     )
     test_ds = FashionMNISTUInt8Dataset(
-        X_test,
+        x_test,
         y_test,
         mean,
         std,

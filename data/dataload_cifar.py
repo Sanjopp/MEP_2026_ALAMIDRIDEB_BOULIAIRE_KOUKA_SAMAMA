@@ -28,12 +28,12 @@ class CIFAR10UInt8Dataset(Dataset):
 
     def __init__(
         self,
-        X_uint8: torch.Tensor,
+        x_uint8: torch.Tensor,
         y: torch.Tensor,
         mean: torch.Tensor,
         std: torch.Tensor,
     ) -> None:
-        self.X_uint8 = X_uint8
+        self.X_uint8 = x_uint8
         self.y = y
         self.mean = mean.float().view(3, 1, 1)
         self.std = std.float().view(3, 1, 1)
@@ -74,9 +74,9 @@ def load_cifar10(
         force_local=force_local,
     )
 
-    X_train_uint8 = artifact["X_train_uint8"]
+    x_train_uint8 = artifact["X_train_uint8"]
     y_train = artifact["y_train"]
-    X_test_uint8 = artifact["X_test_uint8"]
+    x_test_uint8 = artifact["X_test_uint8"]
     y_test = artifact["y_test"]
     mean = artifact["mean"]
     std = artifact["std"]
@@ -90,19 +90,19 @@ def load_cifar10(
 
     # Créer les datasets
     train_ds = CIFAR10UInt8Dataset(
-        X_train_uint8[:n_train_actual],
+        x_train_uint8[:n_train_actual],
         y_train[:n_train_actual],
         mean,
         std,
     )
     val_ds = CIFAR10UInt8Dataset(
-        X_train_uint8[n_train_actual:],
+        x_train_uint8[n_train_actual:],
         y_train[n_train_actual:],
         mean,
         std,
     )
     test_ds = CIFAR10UInt8Dataset(
-        X_test_uint8,
+        x_test_uint8,
         y_test,
         mean,
         std,

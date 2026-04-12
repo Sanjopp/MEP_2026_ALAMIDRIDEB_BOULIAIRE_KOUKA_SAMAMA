@@ -10,7 +10,6 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -91,9 +90,9 @@ class ResultsAnalyzer:
         print("=" * 100)
 
         # Group by dataset and model
-        groups: Dict[str, List[tuple]] = {}
+        groups: dict[str, list[tuple]] = {}
 
-        for exp_name, exp_data in self.experiments.items():
+        for _exp_name, exp_data in self.experiments.items():
             config = exp_data["summary"].get("config", {})
             dataset = config.get("dataset", {}).get("name")
             model_type = config.get("model", {}).get("type")
@@ -132,7 +131,7 @@ class ResultsAnalyzer:
 
         colors = plt.cm.Set3(np.linspace(0, 1, num_exps))
 
-        for idx, (exp_name, exp_data) in enumerate(sorted(self.experiments.items())):
+        for idx, (_exp_name, exp_data) in enumerate(sorted(self.experiments.items())):
             metrics = exp_data["metrics"]
             summary = exp_data["summary"]
 
@@ -144,23 +143,51 @@ class ResultsAnalyzer:
             label = f"{dataset[:4]}_{model_type[0]}_bn{str(use_bn)[0]}"
 
             # Créer l'axe X avec epochs numérotés à partir de 1
-            if "train_loss" in metrics and metrics["train_loss"]:
+            if metrics.get("train_loss"):
                 epochs = np.arange(1, len(metrics["train_loss"]) + 1)
-                
+
                 # Training Loss
-                axes[0, 0].plot(epochs, metrics["train_loss"], label=label, color=colors[idx], linestyle="-", linewidth=1.5)
+                axes[0, 0].plot(
+                    epochs,
+                    metrics["train_loss"],
+                    label=label,
+                    color=colors[idx],
+                    linestyle="-",
+                    linewidth=1.5,
+                )
 
                 # Validation Loss
                 if "val_loss" in metrics:
-                    axes[0, 1].plot(epochs, metrics["val_loss"], label=label, color=colors[idx], linestyle="-", linewidth=1.5)
+                    axes[0, 1].plot(
+                        epochs,
+                        metrics["val_loss"],
+                        label=label,
+                        color=colors[idx],
+                        linestyle="-",
+                        linewidth=1.5,
+                    )
 
                 # Training Accuracy
                 if "train_acc" in metrics:
-                    axes[1, 0].plot(epochs, metrics["train_acc"], label=label, color=colors[idx], linestyle="-", linewidth=1.5)
+                    axes[1, 0].plot(
+                        epochs,
+                        metrics["train_acc"],
+                        label=label,
+                        color=colors[idx],
+                        linestyle="-",
+                        linewidth=1.5,
+                    )
 
                 # Validation Accuracy
                 if "val_acc" in metrics:
-                    axes[1, 1].plot(epochs, metrics["val_acc"], label=label, color=colors[idx], linestyle="-", linewidth=1.5)
+                    axes[1, 1].plot(
+                        epochs,
+                        metrics["val_acc"],
+                        label=label,
+                        color=colors[idx],
+                        linestyle="-",
+                        linewidth=1.5,
+                    )
 
         # Configure subplots
         axes[0, 0].set_title("Training Loss", fontweight="bold")
@@ -206,9 +233,7 @@ class ResultsAnalyzer:
 
         # Summary statistics
         if self.experiments:
-            val_accs = [
-                exp["summary"].get("best_val_acc", 0) for exp in self.experiments.values()
-            ]
+            val_accs = [exp["summary"].get("best_val_acc", 0) for exp in self.experiments.values()]
             report.append(f"Best Val Acc: {max(val_accs):.4f}")
             report.append(f"Mean Val Acc: {np.mean(val_accs):.4f}")
             report.append(f"Std Val Acc: {np.std(val_accs):.4f}")
@@ -232,7 +257,7 @@ class ResultsAnalyzer:
             report.append(f"  Best Val Acc: {summary.get('best_val_acc', 0):.4f}")
 
         report_text = "\n".join(report)
-        
+
         # Save report
         report_path = self.results_dir / "report.txt"
         with open(report_path, "w") as f:

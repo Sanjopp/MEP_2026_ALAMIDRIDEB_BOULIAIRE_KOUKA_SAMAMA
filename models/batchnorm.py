@@ -1,8 +1,8 @@
 """Custom BatchNorm1D implementation from scratch using PyTorch autograd."""
 
 import torch
-import torch.nn as nn
 from torch.autograd import Function
+import torch.nn as nn
 
 
 class BatchNormFunction(Function):
@@ -25,8 +25,8 @@ class BatchNormFunction(Function):
 
     @staticmethod
     def backward(ctx, grad_out):
-        x_centered, x_hat, gamma, std_inv = ctx.saved_tensors
-        N = grad_out.size(0)
+        _, x_hat, gamma, std_inv = ctx.saved_tensors
+        n = grad_out.size(0)
 
         # Gradients for gamma and beta
         dbeta = grad_out.sum(dim=0)
@@ -34,15 +34,7 @@ class BatchNormFunction(Function):
 
         # Gradient for x (corrected formula)
         dxhat = grad_out * gamma
-        dx = (
-            std_inv
-            / N
-            * (
-                N * dxhat
-                - dxhat.sum(dim=0)
-                - x_hat * (dxhat * x_hat).sum(dim=0)
-            )
-        )
+        dx = std_inv / n * (n * dxhat - dxhat.sum(dim=0) - x_hat * (dxhat * x_hat).sum(dim=0))
 
         return dx, dgamma, dbeta, None
 
