@@ -49,7 +49,7 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
     Returns:
         Tensor long de shape (N,).
     """
-    magic,_ = struct.unpack(">II", data[:8])
+    magic, _ = struct.unpack(">II", data[:8])
     if magic != 2049:
         raise ValueError(f"Magic number invalide pour labels IDX : {magic}")
     labels = np.frombuffer(data[8:], dtype=np.uint8)
