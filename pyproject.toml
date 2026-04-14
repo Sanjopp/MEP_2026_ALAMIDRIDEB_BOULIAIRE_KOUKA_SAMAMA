@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "awscli",
     "boto3>=1.42.55",
+    "fastapi>=0.115.0",
     "matplotlib>=3.10.8",
     "notebook>=7.5.5",
     "numpy>=2.4.2",
@@ -27,22 +28,23 @@ dependencies = [
     "torch>=2.10.0",
     "torchvision>=0.25.0",
     "tqdm>=4.67.3",
+    "uvicorn[standard]>=0.34.0",
 ]
 requires-python = "~=3.13.0"
 
 [dependency-groups]
 dev = [
-    "ruff",
-    "pytest",
+    "httpx>=0.28.0",
     "pre-commit",
+    "pytest",
     "detect-secrets",
+    "ruff",
 ]
 
 # ── Ruff ──────────────────────────────────────────────────────────────────────
 [tool.ruff]
 line-length = 99
-# FIXED: include ALL source directories
-src = ["models", "data", "src", "config", "mep_2026_alamidrideb_bouliaire_kouka_samama"]
+src = ["models", "data", "src", "config", "mep_2026_alamidrideb_bouliaire_kouka_samama", "api"]
 
 [tool.ruff.lint]
 extend-select = [
@@ -58,7 +60,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama", "models", "data", "config"]
+known-first-party = ["mep_2026_alamidrideb_bouliaire_kouka_samama", "models", "data", "config", "api"]
 force-sort-within-sections = true
 
 [tool.ruff.format]
