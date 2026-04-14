@@ -5,7 +5,7 @@
 PROJECT_NAME = mep-2026-alamidrideb-bouliaire-kouka-samama
 PYTHON_VERSION = 3.13
 PYTHON_INTERPRETER = python
-API_IMAGE = API_IMAGE = sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama:latest
+API_IMAGE = sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama:latest
 API_PORT = 8000
 
 #################################################################################
