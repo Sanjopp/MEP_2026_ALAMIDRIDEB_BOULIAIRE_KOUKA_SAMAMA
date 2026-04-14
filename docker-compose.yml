@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: batchnorm-classifier-api:latest
+    image: sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama:latest
     container_name: batchnorm-api
     ports:
       - "8000:8000"
