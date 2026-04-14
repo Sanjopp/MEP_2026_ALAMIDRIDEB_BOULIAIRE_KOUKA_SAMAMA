@@ -196,15 +196,7 @@ Related concepts:
 The API exposes trained models via a REST interface built with **FastAPI**.
 It runs inside a **Docker** container and loads the model from **S3** at startup.
 
-'''
-S3 (model .pt)
-      │
-      ▼
-Docker container
-  └── FastAPI
-        ├── GET  /health   → service status
-        └── POST /predict  → image classification
-'''
+The API loads the model weights from **S3** at startup, builds the model architecture, and serves predictions via two endpoints: `GET /health` for service status and `POST /predict` for image classification.
 
 ### Environment variables
 
