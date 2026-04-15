@@ -4,7 +4,7 @@ FROM python:3.13-slim AS builder
 WORKDIR /app
 
 # Install uv
-RUN pip install uv
+RUN pip install uv && pip install uvicorn[standard]
 
 # Copy dependency files
 COPY pyproject.toml uv.lock README.md LICENSE ./
