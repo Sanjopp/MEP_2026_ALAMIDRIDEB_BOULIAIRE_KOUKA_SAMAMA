@@ -41,7 +41,7 @@ references/
 tests/
 
 # Divers
-*.md
+README2.md
 Makefile
 run_experiments.sh
 .pre-commit-config.yaml
