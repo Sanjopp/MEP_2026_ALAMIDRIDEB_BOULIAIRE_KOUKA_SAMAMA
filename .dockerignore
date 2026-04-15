@@ -46,4 +46,3 @@ Makefile
 run_experiments.sh
 .pre-commit-config.yaml
 .secrets.baseline
-uv.lock
