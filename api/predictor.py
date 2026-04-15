@@ -6,7 +6,7 @@ from pathlib import Path
 
 import boto3
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as func
 
 from models.cnn import ConvMLP
 from models.mlp import MLP
@@ -132,7 +132,7 @@ class Predictor:
         tensor = tensor.unsqueeze(0).to(self.device)
 
         logits = self.model(tensor)
-        probabilities = F.softmax(logits, dim=1).squeeze(0)
+        probabilities = func.softmax(logits, dim=1).squeeze(0)
 
         predicted_class = int(probabilities.argmax().item())
         confidence = float(probabilities[predicted_class].item())
