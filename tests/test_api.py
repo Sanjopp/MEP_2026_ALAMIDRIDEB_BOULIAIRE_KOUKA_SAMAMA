@@ -3,7 +3,6 @@
 import os
 from unittest.mock import MagicMock, patch
 
-from fastapi.testclient import TestClient
 import pytest
 
 os.environ.setdefault("MODEL_TYPE", "cnn")
@@ -12,10 +11,19 @@ os.environ.setdefault("USE_BN", "true")
 os.environ.setdefault("S3_BUCKET", "data-mep-project")
 os.environ.setdefault("S3_MODEL_KEY", "models/cifar10_cnn_bn.pt")
 
+mock_s3_client = MagicMock()
+mock_s3_client.download_file.return_value = None
 
-@pytest.fixture()
-def mock_predictor():
-    """Return a fully mocked Predictor instance."""
+with patch("boto3.client", return_value=mock_s3_client), patch(
+    "torch.load", return_value={}
+):
+    from fastapi.testclient import TestClient
+
+    import api.main as main_module
+    from api.main import app
+
+
+def make_mock_predictor():
     predictor = MagicMock()
     predictor.model_type = "cnn"
     predictor.dataset = "cifar10"
@@ -31,28 +39,26 @@ def mock_predictor():
 
 
 @pytest.fixture()
-def client(mock_predictor):
-    """Return a TestClient with the Predictor mocked out."""
-    with (
-        patch("api.main.predictor", mock_predictor),
-        patch("api.predictor.Predictor", return_value=mock_predictor),
-    ):
-        from api.main import app
+def mock_predictor():
+    return make_mock_predictor()
 
-        with TestClient(app, raise_server_exceptions=True) as c:
-            yield c
+
+@pytest.fixture()
+def client(mock_predictor):
+    main_module.predictor = mock_predictor
+    with TestClient(app, raise_server_exceptions=True) as c:
+        yield c
+    main_module.predictor = None
 
 
 class TestHealthEndpoint:
     """Tests for GET /health."""
 
     def test_health_returns_200(self, client):
-        """Health endpoint should return HTTP 200."""
         response = client.get("/health")
         assert response.status_code == 200
 
     def test_health_response_schema(self, client):
-        """Health response should match the HealthResponse schema."""
         response = client.get("/health")
         data = response.json()
         assert data["status"] == "ok"
@@ -62,15 +68,9 @@ class TestHealthEndpoint:
         assert data["device"] == "cpu"
 
     def test_health_returns_503_when_model_not_loaded(self):
-        """Health endpoint should return 503 if predictor is None."""
-        with (
-            patch("api.main.predictor", None),
-            patch("api.predictor.Predictor", side_effect=Exception("no s3")),
-        ):
-            from api.main import app
-
-            with TestClient(app, raise_server_exceptions=False) as c:
-                response = c.get("/health")
+        main_module.predictor = None
+        with TestClient(app, raise_server_exceptions=False) as c:
+            response = c.get("/health")
         assert response.status_code == 503
 
 
@@ -78,16 +78,13 @@ class TestPredictEndpoint:
     """Tests for POST /predict."""
 
     def _cifar10_payload(self) -> dict:
-        """Return a valid CIFAR-10 image payload."""
         return {"image": [[[0.5] * 32] * 32] * 3}
 
     def test_predict_returns_200(self, client):
-        """Predict endpoint should return HTTP 200 on valid input."""
         response = client.post("/predict", json=self._cifar10_payload())
         assert response.status_code == 200
 
     def test_predict_response_schema(self, client):
-        """Predict response should match the PredictResponse schema."""
         response = client.post("/predict", json=self._cifar10_payload())
         data = response.json()
         assert "predicted_class" in data
@@ -101,7 +98,6 @@ class TestPredictEndpoint:
         assert len(data["probabilities"]) == 10
 
     def test_predict_correct_values(self, client):
-        """Predict response should return the mocked prediction values."""
         response = client.post("/predict", json=self._cifar10_payload())
         data = response.json()
         assert data["predicted_class"] == 3
@@ -109,26 +105,18 @@ class TestPredictEndpoint:
         assert data["confidence"] == 0.921
 
     def test_predict_returns_422_on_wrong_shape(self, client, mock_predictor):
-        """Predict endpoint should return 422 if image shape is wrong."""
         mock_predictor.predict.side_effect = ValueError("Invalid image shape.")
         wrong_payload = {"image": [[[0.5] * 28] * 28] * 1}
         response = client.post("/predict", json=wrong_payload)
         assert response.status_code == 422
 
     def test_predict_returns_503_when_model_not_loaded(self):
-        """Predict endpoint should return 503 if predictor is None."""
-        with (
-            patch("api.main.predictor", None),
-            patch("api.predictor.Predictor", side_effect=Exception("no s3")),
-        ):
-            from api.main import app
-
-            with TestClient(app, raise_server_exceptions=False) as c:
-                response = c.post("/predict", json={"image": [[[0.5] * 32] * 32] * 3})
+        main_module.predictor = None
+        with TestClient(app, raise_server_exceptions=False) as c:
+            response = c.post("/predict", json={"image": [[[0.5] * 32] * 32] * 3})
         assert response.status_code == 503
 
     def test_predict_returns_500_on_inference_error(self, client, mock_predictor):
-        """Predict endpoint should return 500 on unexpected inference error."""
         mock_predictor.predict.side_effect = RuntimeError("CUDA out of memory.")
         response = client.post("/predict", json=self._cifar10_payload())
         assert response.status_code == 500
