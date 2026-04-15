@@ -39,6 +39,7 @@ def client(mock_predictor):
     """
     with patch("api.main.predictor", mock_predictor):
         from api.main import app
+
         with TestClient(app, raise_server_exceptions=True) as c:
             yield c
 
@@ -65,6 +66,7 @@ class TestHealthEndpoint:
         """Health endpoint should return 503 if predictor is None."""
         with patch("api.main.predictor", None):
             from api.main import app
+
             with TestClient(app, raise_server_exceptions=False) as c:
                 response = c.get("/health")
         assert response.status_code == 503
@@ -115,6 +117,7 @@ class TestPredictEndpoint:
         """Predict endpoint should return 503 if predictor is None."""
         with patch("api.main.predictor", None):
             from api.main import app
+
             with TestClient(app, raise_server_exceptions=False) as c:
                 response = c.post("/predict", json={"image": [[[0.5] * 32] * 32] * 3})
         assert response.status_code == 503

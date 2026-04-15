@@ -14,13 +14,29 @@ from models.mlp import MLP
 logger = logging.getLogger(__name__)
 
 CIFAR10_LABELS = [
-    "airplane", "automobile", "bird", "cat", "deer",
-    "dog", "frog", "horse", "ship", "truck",
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
 ]
 
 FASHION_MNIST_LABELS = [
-    "t-shirt/top", "trouser", "pullover", "dress", "coat",
-    "sandal", "shirt", "sneaker", "bag", "ankle boot",
+    "t-shirt/top",
+    "trouser",
+    "pullover",
+    "dress",
+    "coat",
+    "sandal",
+    "shirt",
+    "sneaker",
+    "bag",
+    "ankle boot",
 ]
 
 DATASET_LABELS = {
@@ -46,13 +62,10 @@ class Predictor:
 
         if self.dataset not in DATASET_LABELS:
             raise ValueError(
-                f"Unknown dataset '{self.dataset}'. "
-                f"Expected one of: {list(DATASET_LABELS.keys())}"
+                f"Unknown dataset '{self.dataset}'. Expected one of: {list(DATASET_LABELS.keys())}"
             )
         if self.model_type not in ("mlp", "cnn"):
-            raise ValueError(
-                f"Unknown model type '{self.model_type}'. Expected 'mlp' or 'cnn'."
-            )
+            raise ValueError(f"Unknown model type '{self.model_type}'. Expected 'mlp' or 'cnn'.")
 
         self.labels = DATASET_LABELS[self.dataset]
         self.input_specs = DATASET_INPUT_SPECS[self.dataset]
@@ -86,9 +99,7 @@ class Predictor:
         """Download model weights from S3 and load into architecture."""
         local_path = Path("/tmp/model.pt")
 
-        logger.info(
-            f"Downloading model from s3://{self.s3_bucket}/{self.s3_model_key} ..."
-        )
+        logger.info(f"Downloading model from s3://{self.s3_bucket}/{self.s3_model_key} ...")
 
         s3 = boto3.client("s3")
         s3.download_file(self.s3_bucket, self.s3_model_key, str(local_path))
