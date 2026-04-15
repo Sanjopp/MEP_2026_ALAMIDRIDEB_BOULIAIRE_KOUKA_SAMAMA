@@ -71,6 +71,11 @@ create_environment:
 # PROJECT RULES                                                                 #
 #################################################################################
 
+## Launch MLflow UI (http://localhost:5000)
+.PHONY: mlflow-ui
+mlflow-ui:
+	mlflow ui --backend-store-uri sqlite:///mlflow.db
+
 
 
 #################################################################################

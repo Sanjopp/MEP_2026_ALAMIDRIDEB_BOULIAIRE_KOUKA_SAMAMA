@@ -19,6 +19,7 @@ dependencies = [
     "awscli",
     "boto3>=1.42.55",
     "matplotlib>=3.10.8",
+    "mlflow>=3.11.1",
     "notebook>=7.5.5",
     "numpy>=2.4.2",
     "pip",
