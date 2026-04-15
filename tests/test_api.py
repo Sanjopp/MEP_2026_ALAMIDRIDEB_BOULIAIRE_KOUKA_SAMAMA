@@ -3,8 +3,8 @@
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 os.environ.setdefault("MODEL_TYPE", "cnn")
 os.environ.setdefault("DATASET", "cifar10")
