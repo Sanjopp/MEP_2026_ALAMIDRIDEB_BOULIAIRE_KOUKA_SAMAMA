@@ -68,9 +68,11 @@ class TestHealthEndpoint:
         assert data["device"] == "cpu"
 
     def test_health_returns_503_when_model_not_loaded(self):
+        """Health endpoint should return 503 if predictor is None."""
         main_module.predictor = None
-        with TestClient(app, raise_server_exceptions=False) as c:
-            response = c.get("/health")
+        with patch("api.predictor.Predictor", side_effect=Exception("no s3")):
+            with TestClient(app, raise_server_exceptions=False) as c:
+                response = c.get("/health")
         assert response.status_code == 503
 
 
@@ -111,9 +113,11 @@ class TestPredictEndpoint:
         assert response.status_code == 422
 
     def test_predict_returns_503_when_model_not_loaded(self):
+        """Predict endpoint should return 503 if predictor is None."""
         main_module.predictor = None
-        with TestClient(app, raise_server_exceptions=False) as c:
-            response = c.post("/predict", json={"image": [[[0.5] * 32] * 32] * 3})
+        with patch("api.predictor.Predictor", side_effect=Exception("no s3")):
+            with TestClient(app, raise_server_exceptions=False) as c:
+                response = c.post("/predict", json={"image": [[[0.5] * 32] * 32] * 3})
         assert response.status_code == 503
 
     def test_predict_returns_500_on_inference_error(self, client, mock_predictor):
