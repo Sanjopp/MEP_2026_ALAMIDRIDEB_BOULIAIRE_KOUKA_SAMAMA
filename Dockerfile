@@ -4,14 +4,14 @@ FROM python:3.13-slim AS builder
 WORKDIR /app
 
 # Install uv
-RUN pip install uv && pip install uvicorn[standard]
+RUN pip install uv
 
 # Copy dependency files
 COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY mep_2026_alamidrideb_bouliaire_kouka_samama/ ./mep_2026_alamidrideb_bouliaire_kouka_samama/
 
 # Install all production dependencies into a virtual environment
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev && .venv/bin/pip install "uvicorn[standard]>=0.34.0"
 
 # ── Stage 2 : runtime ─────────────────────────────────────────────────────────
 FROM python:3.13-slim AS runtime
