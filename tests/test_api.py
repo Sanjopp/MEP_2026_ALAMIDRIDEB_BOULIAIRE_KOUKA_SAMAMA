@@ -14,9 +14,7 @@ os.environ.setdefault("S3_MODEL_KEY", "models/cifar10_cnn_bn.pt")
 mock_s3_client = MagicMock()
 mock_s3_client.download_file.return_value = None
 
-with patch("boto3.client", return_value=mock_s3_client), patch(
-    "torch.load", return_value={}
-):
+with patch("boto3.client", return_value=mock_s3_client), patch("torch.load", return_value={}):
     from fastapi.testclient import TestClient
 
     import api.main as main_module
