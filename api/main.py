@@ -23,7 +23,8 @@ async def lifespan(app: FastAPI):
     global predictor
     logger.info("Starting up — loading model from S3...")
     try:
-        predictor = Predictor()
+        if predictor is None:
+            predictor = Predictor()
         logger.info("Model loaded successfully. API is ready.")
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
