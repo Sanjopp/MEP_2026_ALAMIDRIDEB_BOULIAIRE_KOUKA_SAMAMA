@@ -11,7 +11,7 @@ COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY mep_2026_alamidrideb_bouliaire_kouka_samama/ ./mep_2026_alamidrideb_bouliaire_kouka_samama/
 
 # Install all production dependencies into a virtual environment
-RUN uv sync --frozen --no-dev && .venv/bin/pip install "uvicorn[standard]>=0.34.0"
+RUN uv sync --frozen --no-dev && .venv/bin/pip install "uvicorn[standard]>=0.34.0" "fastapi>=0.115.0"
 
 # ── Stage 2 : runtime ─────────────────────────────────────────────────────────
 FROM python:3.13-slim AS runtime
