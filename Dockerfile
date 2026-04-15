@@ -8,6 +8,7 @@ RUN pip install uv
 
 # Copy dependency files
 COPY pyproject.toml uv.lock README.md LICENSE ./
+COPY mep_2026_alamidrideb_bouliaire_kouka_samama/ ./mep_2026_alamidrideb_bouliaire_kouka_samama/
 
 # Install all production dependencies into a virtual environment
 RUN uv sync --frozen --no-dev
