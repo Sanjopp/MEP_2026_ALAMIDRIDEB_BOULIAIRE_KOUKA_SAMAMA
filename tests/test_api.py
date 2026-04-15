@@ -3,23 +3,14 @@
 import os
 from unittest.mock import MagicMock, patch
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 os.environ.setdefault("MODEL_TYPE", "cnn")
 os.environ.setdefault("DATASET", "cifar10")
 os.environ.setdefault("USE_BN", "true")
 os.environ.setdefault("S3_BUCKET", "data-mep-project")
 os.environ.setdefault("S3_MODEL_KEY", "models/cifar10_cnn_bn.pt")
-
-
-MOCK_ENV = {
-    "MODEL_TYPE": "cnn",
-    "DATASET": "cifar10",
-    "USE_BN": "true",
-    "S3_BUCKET": "data-mep-project",
-    "S3_MODEL_KEY": "models/cifar10_cnn_bn.pt",
-}
 
 
 @pytest.fixture()
@@ -41,11 +32,11 @@ def mock_predictor():
 
 @pytest.fixture()
 def client(mock_predictor):
-    """
-    Return a TestClient with the Predictor mocked out.
-    The lifespan is bypassed — we inject the mock directly.
-    """
-    with patch("api.main.predictor", mock_predictor):
+    """Return a TestClient with the Predictor mocked out."""
+    with (
+        patch("api.main.predictor", mock_predictor),
+        patch("api.predictor.Predictor", return_value=mock_predictor),
+    ):
         from api.main import app
 
         with TestClient(app, raise_server_exceptions=True) as c:
@@ -72,7 +63,10 @@ class TestHealthEndpoint:
 
     def test_health_returns_503_when_model_not_loaded(self):
         """Health endpoint should return 503 if predictor is None."""
-        with patch("api.main.predictor", None):
+        with (
+            patch("api.main.predictor", None),
+            patch("api.predictor.Predictor", side_effect=Exception("no s3")),
+        ):
             from api.main import app
 
             with TestClient(app, raise_server_exceptions=False) as c:
@@ -123,7 +117,10 @@ class TestPredictEndpoint:
 
     def test_predict_returns_503_when_model_not_loaded(self):
         """Predict endpoint should return 503 if predictor is None."""
-        with patch("api.main.predictor", None):
+        with (
+            patch("api.main.predictor", None),
+            patch("api.predictor.Predictor", side_effect=Exception("no s3")),
+        ):
             from api.main import app
 
             with TestClient(app, raise_server_exceptions=False) as c:
