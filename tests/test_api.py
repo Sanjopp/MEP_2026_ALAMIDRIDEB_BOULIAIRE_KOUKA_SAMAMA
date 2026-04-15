@@ -2,9 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
-
+import pytest
 
 MOCK_ENV = {
     "MODEL_TYPE": "cnn",
