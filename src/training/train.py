@@ -12,6 +12,8 @@ from pathlib import Path
 import sys
 
 from dotenv import load_dotenv
+import mlflow
+import mlflow.pytorch
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -290,35 +292,68 @@ def train(config: ConfigManager) -> None:
     log_interval = config.get("logging.log_interval")
     metrics_tracker = MetricsTracker()
 
-    logger.info(f"Starting training for {num_epochs} epochs...")
+    # MLflow setup
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    dataset_name = config.get("dataset.name")
+    model_type = config.get("model.type")
+    mlflow.set_experiment(f"{dataset_name}_{model_type}")
 
-    for epoch in range(num_epochs):
-        # Train
-        train_loss, train_acc, grad_norm = train_epoch(
-            model, train_loader, optimizer, criterion, device, epoch, log_interval
+    with mlflow.start_run():
+        # Log hyperparameters
+        mlflow.log_params(
+            {
+                "dataset": dataset_name,
+                "model_type": model_type,
+                "use_bn": config.get("model.use_bn"),
+                "optimizer": optimizer_type,
+                "learning_rate": learning_rate,
+                "num_epochs": num_epochs,
+                "seed": seed,
+                "batch_size": config.get("dataset.batch_size"),
+            }
         )
 
-        # Validate
-        val_loss, val_acc = validate(model, val_loader, criterion, device, epoch)
+        logger.info(f"Starting training for {num_epochs} epochs...")
 
-        # Track metrics
-        metrics_tracker.update(
-            train_loss=train_loss,
-            train_acc=train_acc,
-            val_loss=val_loss,
-            val_acc=val_acc,
-            grad_norm=grad_norm,
-        )
+        for epoch in range(num_epochs):
+            # Train
+            train_loss, train_acc, grad_norm = train_epoch(
+                model, train_loader, optimizer, criterion, device, epoch, log_interval
+            )
 
-        logger.info(
-            f"Epoch {epoch + 1:3d} | "
-            f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
-            f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | "
-            f"Grad Norm: {grad_norm:.4f}"
-        )
+            # Validate
+            val_loss, val_acc = validate(model, val_loader, criterion, device, epoch)
 
-    logger.info("Training completed!")
-    return model, metrics_tracker, test_loader
+            # Track metrics
+            metrics_tracker.update(
+                train_loss=train_loss,
+                train_acc=train_acc,
+                val_loss=val_loss,
+                val_acc=val_acc,
+                grad_norm=grad_norm,
+            )
+
+            # Log metrics to MLflow
+            mlflow.log_metrics(
+                {
+                    "train_loss": train_loss,
+                    "train_acc": train_acc,
+                    "val_loss": val_loss,
+                    "val_acc": val_acc,
+                    "grad_norm": grad_norm,
+                },
+                step=epoch + 1,
+            )
+
+            logger.info(
+                f"Epoch {epoch + 1:3d} | "
+                f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
+                f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f} | "
+                f"Grad Norm: {grad_norm:.4f}"
+            )
+
+        logger.info("Training completed!")
+        return model, metrics_tracker, test_loader, mlflow.active_run().info.run_id
 
 
 def save_results(
@@ -410,7 +445,7 @@ def main():
 
     # Train
     try:
-        model, metrics_tracker, test_loader = train(config)
+        model, metrics_tracker, test_loader, run_id = train(config)
 
         # FINAL EVALUATION ON TEST SET
         device = get_device()
@@ -421,6 +456,13 @@ def main():
         logger.info("FINAL TEST SET EVALUATION")
         logger.info(f"Test Loss: {test_loss:.4f} | Test Accuracy: {test_acc:.4f}")
         logger.info("=" * 80)
+
+        # Log test metrics and model to MLflow
+        mlflow.set_tracking_uri("sqlite:///mlflow.db")
+        with mlflow.start_run(run_id=run_id):
+            mlflow.log_metrics({"test_loss": test_loss, "test_acc": test_acc})
+            if config.get("logging.save_model"):
+                mlflow.pytorch.log_model(model, "model")
 
         # Save results
         if config.get("logging.save_model") or config.get("logging.save_metrics"):

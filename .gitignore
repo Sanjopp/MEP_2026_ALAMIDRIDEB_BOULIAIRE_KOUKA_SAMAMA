@@ -1,6 +1,10 @@
 # Data
 data/local/
 
+# MLflow
+mlflow.db
+mlruns/
+
 # Mac OS-specific storage files
 .DS_Store
 
@@ -189,3 +193,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# VS Code settings
+.vscode/
