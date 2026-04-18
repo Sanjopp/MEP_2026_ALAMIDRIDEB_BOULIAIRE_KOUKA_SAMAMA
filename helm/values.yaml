@@ -1,0 +1,33 @@
+image:
+  repository: sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  host: batchnorm-api.user-sanjopp.lab.sspcloud.fr
+
+env:
+  MODEL_TYPE: cnn
+  DATASET: cifar10
+  USE_BN: "true"
+  S3_BUCKET: data-mep-project
+  S3_MODEL_KEY: models/cifar10_cnn_bn.pt
+  AWS_DEFAULT_REGION: eu-north-1
+
+secrets:
+  name: mep-secrets
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+replicaCount: 1
