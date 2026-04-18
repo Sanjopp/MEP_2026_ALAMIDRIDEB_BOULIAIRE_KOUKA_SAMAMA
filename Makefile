@@ -7,6 +7,8 @@ PYTHON_VERSION = 3.13
 PYTHON_INTERPRETER = python
 API_IMAGE = sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama:latest
 API_PORT = 8000
+HELM_RELEASE = batchnorm-api
+HELM_NAMESPACE = user-sanjopp
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -84,6 +86,24 @@ docker-logs:
 .PHONY: mlflow-ui
 mlflow-ui:
 	mlflow ui --backend-store-uri sqlite:///mlflow.db
+
+## Deploy to SSP Cloud with Helm
+.PHONY: helm-deploy
+helm-deploy:
+	helm upgrade --install $(HELM_RELEASE) helm/ \
+		--namespace $(HELM_NAMESPACE) \
+		--create-namespace \
+		--wait
+
+## Uninstall from SSP Cloud
+.PHONY: helm-uninstall
+helm-uninstall:
+	helm uninstall $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
+
+## Show SSP Cloud deployment status
+.PHONY: helm-status
+helm-status:
+	helm status $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 
 ## Download Data from storage system
 .PHONY: sync_data_down
