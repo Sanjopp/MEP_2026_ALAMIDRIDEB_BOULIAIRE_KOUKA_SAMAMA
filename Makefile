@@ -80,6 +80,11 @@ docker-down:
 docker-logs:
 	docker compose logs -f api
 
+## Launch MLflow UI (http://localhost:5000)
+.PHONY: mlflow-ui
+mlflow-ui:
+	mlflow ui --backend-store-uri sqlite:///mlflow.db
+
 ## Download Data from storage system
 .PHONY: sync_data_down
 sync_data_down:
