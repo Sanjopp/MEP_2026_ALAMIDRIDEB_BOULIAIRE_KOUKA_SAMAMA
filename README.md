@@ -215,7 +215,7 @@ Copy `config/secrets.env.example` to `config/secrets.env` and fill in the values
 
 ### Run the API locally (without Docker)
 
-"""bash
+```bash
 # 1. Install dependencies
 make requirements
 
@@ -225,14 +225,14 @@ cp config/secrets.env.example config/secrets.env
 
 # 3. Start the API in development mode (auto-reload)
 make run-api
-"""
+```
 
 The API is available at `http://localhost:8000`.
 Interactive Swagger documentation is available at `http://localhost:8000/docs`.
 
 ### Run the API with Docker
 
-"""bash
+```bash
 # 1. Create and fill in the secrets file
 cp config/secrets.env.example config/secrets.env
 # edit config/secrets.env with your values
@@ -242,39 +242,39 @@ make docker-build
 
 # 3. Start the container
 make docker-up
-"""
+```
 
 The API is available at `http://localhost:8000`.
 
 Run in detached mode:
 
-"""bash
+```bash
 make docker-up-detached
-"""
+```
 
 Stop the container:
 
-"""bash
+```bash
 make docker-down
-"""
+```
 
 View logs:
 
-"""bash
+```bash
 make docker-logs
-"""
+```
 
 ### API usage examples
 
 **Health check:**
 
-"""bash
+```bash
 curl http://localhost:8000/health
-"""
+```
 
 Expected response:
 
-"""json
+```json
 {
   "status": "ok",
   "model_type": "cnn",
@@ -282,36 +282,83 @@ Expected response:
   "use_bn": true,
   "device": "cpu"
 }
-"""
+```
 
 **Prediction:**
 
-"""bash
+```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{"image": [[[0.5, 0.5, ...] ...] ...]}'
-"""
+```
 
 Expected response:
 
-"""json
+```json
 {
   "predicted_class": 3,
   "predicted_label": "cat",
   "confidence": 0.921,
   "probabilities": [0.01, 0.01, 0.01, 0.921, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 }
-"""
+```
 
 ### Run the tests
 
-"""bash
+```bash
 # All tests (models + API)
 make test
 
 # API tests only
 make test-api
-"""
+```
+
+## SSP Cloud Deployment
+
+### Prerequisites
+
+- Access to [SSP Cloud](https://datalab.sspcloud.fr)
+- `kubectl` and `helm` configured with your SSP Cloud credentials (see **My account > Kubernetes**)
+- Your AWS secrets configured in SSP Cloud **My Secrets** under `mep-secrets`
+
+### Deploy with Helm
+
+```bash
+make helm-deploy
+```
+
+The API will be accessible at:
+`https://batchnorm-api.user-sanjopp.lab.sspcloud.fr`
+
+### Check deployment status
+
+```bash
+make helm-status
+```
+
+### Uninstall
+
+```bash
+make helm-uninstall
+```
+
+### Switch model
+
+To deploy a different model, edit `helm/values.yaml` and update:
+
+```yaml
+env:
+  MODEL_TYPE: mlp
+  DATASET: fashion_mnist
+  USE_BN: "false"
+  S3_MODEL_KEY: models/fashion_mnist_mlp_no_bn.pt
+```
+
+Then redeploy:
+
+```bash
+make helm-deploy
+```
 
 **Project Status**: Active research and experimentation  
 **Current Branch**: `main`   
