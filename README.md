@@ -189,6 +189,130 @@ Related concepts:
 
 ---
 
+## Production Deployment
+
+### Architecture
+
+The API exposes trained models via a REST interface built with **FastAPI**.
+It runs inside a **Docker** container and loads the model from **S3** at startup.
+
+The API loads the model weights from **S3** at startup, builds the model architecture, and serves predictions via two endpoints: `GET /health` for service status and `POST /predict` for image classification.
+
+### Environment variables
+
+Copy `config/secrets.env.example` to `config/secrets.env` and fill in the values:
+
+| Variable                | Description                              | Example                      |
+|-------------------------|------------------------------------------|------------------------------|
+| `MODEL_TYPE`            | Model architecture                       | `cnn` or `mlp`               |
+| `DATASET`               | Dataset the model was trained on         | `cifar10` or `fashion_mnist` |
+| `USE_BN`                | Whether Batch Normalization is enabled   | `true` or `false`            |
+| `S3_BUCKET`             | S3 bucket name                           | `data-mep-project`           |
+| `S3_MODEL_KEY`          | Path to the model file in the bucket     | `models/cifar10_cnn_bn.pt`   |
+| `AWS_ACCESS_KEY_ID`     | AWS access key                           | —                            |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key                           | —                            |
+| `AWS_DEFAULT_REGION`    | Bucket region                            | `eu-north-1`                 |
+
+### Run the API locally (without Docker)
+
+"""bash
+# 1. Install dependencies
+make requirements
+
+# 2. Create and fill in the secrets file
+cp config/secrets.env.example config/secrets.env
+# edit config/secrets.env with your values
+
+# 3. Start the API in development mode (auto-reload)
+make run-api
+"""
+
+The API is available at `http://localhost:8000`.
+Interactive Swagger documentation is available at `http://localhost:8000/docs`.
+
+### Run the API with Docker
+
+"""bash
+# 1. Create and fill in the secrets file
+cp config/secrets.env.example config/secrets.env
+# edit config/secrets.env with your values
+
+# 2. Build the Docker image
+make docker-build
+
+# 3. Start the container
+make docker-up
+"""
+
+The API is available at `http://localhost:8000`.
+
+Run in detached mode:
+
+"""bash
+make docker-up-detached
+"""
+
+Stop the container:
+
+"""bash
+make docker-down
+"""
+
+View logs:
+
+"""bash
+make docker-logs
+"""
+
+### API usage examples
+
+**Health check:**
+
+"""bash
+curl http://localhost:8000/health
+"""
+
+Expected response:
+
+"""json
+{
+  "status": "ok",
+  "model_type": "cnn",
+  "dataset": "cifar10",
+  "use_bn": true,
+  "device": "cpu"
+}
+"""
+
+**Prediction:**
+
+"""bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"image": [[[0.5, 0.5, ...] ...] ...]}'
+"""
+
+Expected response:
+
+"""json
+{
+  "predicted_class": 3,
+  "predicted_label": "cat",
+  "confidence": 0.921,
+  "probabilities": [0.01, 0.01, 0.01, 0.921, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+}
+"""
+
+### Run the tests
+
+"""bash
+# All tests (models + API)
+make test
+
+# API tests only
+make test-api
+"""
+
 **Project Status**: Active research and experimentation  
 **Current Branch**: `main`   
 **Last Updated**: January 2025

@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Environnements
+.venv/
+.env
+*.env
+
+# Données et modèles locaux
+data/local/
+models/*.pt
+results/
+
+# MLflow
+mlflow.db
+mlruns/
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Docs
+docs/
+reports/
+references/
+
+# Tests
+tests/
+
+# Divers
+README2.md
+Makefile
+run_experiments.sh
+.pre-commit-config.yaml
+.secrets.baseline
