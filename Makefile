@@ -8,7 +8,7 @@ PYTHON_INTERPRETER = python
 API_IMAGE = sanjjopp/mep_2026_alamidrideb_bouliaire_kouka_samama:latest
 API_PORT = 8000
 HELM_RELEASE = batchnorm-api
-HELM_NAMESPACE = user-zalamidrideb
+HELM_NAMESPACE = user-sanjopp
 
 #################################################################################
 # COMMANDS                                                                      #
