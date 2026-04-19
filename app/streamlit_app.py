@@ -169,8 +169,34 @@ tab1, tab2 = st.tabs(["Experiment Explorer", "Train via API"])
 # TAB 1 - MLFLOW EXPLORER
 # =========================================================
 with tab1:
-    experiment_name = "cifar10_cnn"
-    runs = load_runs(experiment_name)
+
+    experiments = mlflow.search_experiments()
+
+    experiment_names = [
+        exp.name
+        for exp in experiments
+        if exp.name != "Default"
+    ]
+
+    selected_experiment = st.selectbox(
+        "Experiment MLflow",
+        ["All", *experiment_names],
+        index=0,
+    )
+
+    if selected_experiment == "All":
+        all_runs = []
+        for exp_name in experiment_names:
+            exp_runs = load_runs(exp_name)
+            if not exp_runs.empty:
+                exp_runs["experiment_name"] = exp_name
+                all_runs.append(exp_runs)
+
+        runs = pd.concat(all_runs, ignore_index=True) if all_runs else pd.DataFrame()
+    else:
+        runs = load_runs(selected_experiment)
+        if not runs.empty:
+            runs["experiment_name"] = selected_experiment
 
     if runs.empty:
         st.error(
