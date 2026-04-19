@@ -42,3 +42,18 @@ class HealthResponse(BaseModel):
     dataset: str = Field(..., description="Dataset the model was trained on.")
     use_bn: bool = Field(..., description="Whether the model uses Batch Normalization.")
     device: str = Field(..., description="Device used for inference (cpu or cuda).")
+
+
+from pydantic import BaseModel, Field
+
+
+class TrainingRequest(BaseModel):
+    dataset: str = Field(default="cifar10")
+    model_type: str = Field(default="cnn")
+    use_bn: bool = Field(default=True)
+    learning_rate: float = Field(default=0.001)
+    num_epochs: int = Field(default=1)
+    optimizer: str = Field(default="adam")
+    batch_size: int = Field(default=64)
+    seed: int = Field(default=42)
+    verbose: bool = Field(default=True)

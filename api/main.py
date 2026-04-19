@@ -86,3 +86,49 @@ def predict(request: PredictRequest) -> PredictResponse:
         logger.error(f"Inference error: {e}")
         raise HTTPException(status_code=500, detail="Inference failed.") from e
     return PredictResponse(**result)
+
+from fastapi import FastAPI, HTTPException
+from api.schemas import TrainingRequest
+import subprocess
+from pathlib import Path
+
+app = FastAPI()
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+@app.post("/train")
+def launch_training(request: TrainingRequest):
+    cmd = [
+        "uv", "run", "python", "src/training/train.py",
+        "--dataset", request.dataset,
+        "--model-type", request.model_type,
+        "--use-bn", str(request.use_bn),
+        "--batch-size", str(request.batch_size),
+        "--learning-rate", str(request.learning_rate),
+        "--num-epochs", str(request.num_epochs),
+        "--optimizer", request.optimizer,
+        "--seed", str(request.seed),
+    ]
+
+    if request.verbose:
+        cmd.append("--verbose")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du lancement du training: {exc}")
+
+    return {
+        "status": "success" if result.returncode == 0 else "failed",
+        "returncode": result.returncode,
+        "command": " ".join(cmd),
+        "stdout": result.stdout[-4000:],
+        "stderr": result.stderr[-4000:],
+    }
