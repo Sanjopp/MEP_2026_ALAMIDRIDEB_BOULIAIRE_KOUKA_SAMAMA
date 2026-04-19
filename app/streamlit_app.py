@@ -169,14 +169,9 @@ tab1, tab2 = st.tabs(["Experiment Explorer", "Train via API"])
 # TAB 1 - MLFLOW EXPLORER
 # =========================================================
 with tab1:
-
     experiments = mlflow.search_experiments()
 
-    experiment_names = [
-        exp.name
-        for exp in experiments
-        if exp.name != "Default"
-    ]
+    experiment_names = [exp.name for exp in experiments if exp.name != "Default"]
 
     selected_experiment = st.selectbox(
         "Experiment MLflow",
@@ -200,7 +195,7 @@ with tab1:
 
     if runs.empty:
         st.error(
-            f"Aucun run trouve pour l'experience '{experiment_name}' ou experience introuvable."
+            f"Aucun run trouve pour l'experience '{selected_experiment}' ou experience introuvable."
         )
         st.stop()
 
