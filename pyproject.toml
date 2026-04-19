@@ -26,6 +26,7 @@ dependencies = [
     "pip",
     "python-dotenv",
     "pyyaml",
+    "streamlit>=1.56.0",
     "torch>=2.10.0",
     "torchvision>=0.25.0",
     "tqdm>=4.67.3",
