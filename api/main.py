@@ -1,12 +1,19 @@
-"""FastAPI application exposing model inference."""
+"""FastAPI application exposing model inference and training."""
 
 from contextlib import asynccontextmanager
 import logging
+from pathlib import Path
+import subprocess
 
 from fastapi import FastAPI, HTTPException
 
 from api.predictor import Predictor
-from api.schemas import HealthResponse, PredictRequest, PredictResponse
+from api.schemas import (
+    HealthResponse,
+    PredictRequest,
+    PredictResponse,
+    TrainingRequest,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,13 +22,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 predictor: Predictor | None = None
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load model on startup, release on shutdown."""
     global predictor
-    logger.info("Starting up — loading model from S3...")
+    logger.info("Starting up - loading model from S3...")
     try:
         if predictor is None:
             predictor = Predictor()
@@ -87,28 +95,31 @@ def predict(request: PredictRequest) -> PredictResponse:
         raise HTTPException(status_code=500, detail="Inference failed.") from e
     return PredictResponse(**result)
 
-from fastapi import FastAPI, HTTPException
-from api.schemas import TrainingRequest
-import subprocess
-from pathlib import Path
 
-app = FastAPI()
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-
-@app.post("/train")
+@app.post("/train", summary="Launch training")
 def launch_training(request: TrainingRequest):
+    """Launch a training run from the API."""
     cmd = [
-        "uv", "run", "python", "src/training/train.py",
-        "--dataset", request.dataset,
-        "--model-type", request.model_type,
-        "--use-bn", str(request.use_bn),
-        "--batch-size", str(request.batch_size),
-        "--learning-rate", str(request.learning_rate),
-        "--num-epochs", str(request.num_epochs),
-        "--optimizer", request.optimizer,
-        "--seed", str(request.seed),
+        "uv",
+        "run",
+        "python",
+        "src/training/train.py",
+        "--dataset",
+        request.dataset,
+        "--model-type",
+        request.model_type,
+        "--use-bn",
+        str(request.use_bn),
+        "--batch-size",
+        str(request.batch_size),
+        "--learning-rate",
+        str(request.learning_rate),
+        "--num-epochs",
+        str(request.num_epochs),
+        "--optimizer",
+        request.optimizer,
+        "--seed",
+        str(request.seed),
     ]
 
     if request.verbose:
@@ -123,7 +134,10 @@ def launch_training(request: TrainingRequest):
             check=False,
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Erreur lors du lancement du training: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error while launching training: {exc}",
+        ) from exc
 
     return {
         "status": "success" if result.returncode == 0 else "failed",

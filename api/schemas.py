@@ -44,10 +44,9 @@ class HealthResponse(BaseModel):
     device: str = Field(..., description="Device used for inference (cpu or cuda).")
 
 
-from pydantic import BaseModel, Field
-
-
 class TrainingRequest(BaseModel):
+    """Input schema for training endpoint."""
+
     dataset: str = Field(default="cifar10")
     model_type: str = Field(default="cnn")
     use_bn: bool = Field(default=True)

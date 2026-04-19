@@ -1,15 +1,14 @@
-import streamlit as st
 import mlflow
 import pandas as pd
 import plotly.express as px
 import requests
+import streamlit as st
 
 st.set_page_config(page_title="BatchNorm Dashboard", layout="wide")
 
 # -----------------------------
 # Style
 # -----------------------------
-
 st.markdown(
     """
     <style>
@@ -94,7 +93,6 @@ st.markdown(
         background: white;
     }
 
-    /* Tags multiselect à gauche */
     [data-baseweb="tag"] {
         background-color: #60a5fa !important;
         color: white !important;
@@ -112,6 +110,8 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
 # -----------------------------
 # Helpers
 # -----------------------------
@@ -144,15 +144,15 @@ def load_runs(experiment_name: str) -> pd.DataFrame:
 st.title("Batch Normalization Dashboard")
 st.markdown(
     '<div class="small-muted">Exploration des runs MLflow et lancement interactif '
-    "des entraînements via FastAPI.</div>",
+    "des entrainements via FastAPI.</div>",
     unsafe_allow_html=True,
 )
 
 st.markdown(
     """
     <div class="info-box">
-    <b>Projet :</b> mise en production d’un projet de Data Science autour de l’impact du Batch Normalization
-    sur les performances d’entraînement, avec suivi des expériences via MLflow et pilotage via FastAPI.
+    <b>Projet :</b> mise en production d'un projet de Data Science autour de l'impact du Batch Normalization
+    sur les performances d'entrainement, avec suivi des experiences via MLflow et pilotage via FastAPI.
     </div>
     """,
     unsafe_allow_html=True,
@@ -168,7 +168,9 @@ with tab1:
     runs = load_runs(experiment_name)
 
     if runs.empty:
-        st.error(f"Aucun run trouvé pour l'expérience '{experiment_name}' ou expérience introuvable.")
+        st.error(
+            f"Aucun run trouve pour l'experience '{experiment_name}' ou experience introuvable."
+        )
         st.stop()
 
     metric_cols = [
@@ -181,7 +183,7 @@ with tab1:
         "metrics.grad_norm",
     ]
 
-    runs = to_float(runs, metric_cols + ["params.learning_rate"])
+    runs = to_float(runs, [*metric_cols, "params.learning_rate"])
     runs = to_str(
         runs,
         [
@@ -201,47 +203,91 @@ with tab1:
 
     if "params.use_bn" in filtered_runs.columns:
         bn_values = sorted(filtered_runs["params.use_bn"].dropna().unique().tolist())
-        selected_bn = st.sidebar.multiselect("BatchNorm", bn_values, default=bn_values)
+        selected_bn = st.sidebar.multiselect(
+            "BatchNorm", bn_values, default=bn_values
+        )
         filtered_runs = filtered_runs[filtered_runs["params.use_bn"].isin(selected_bn)]
 
     if "params.model_type" in filtered_runs.columns:
-        model_values = sorted(filtered_runs["params.model_type"].dropna().unique().tolist())
-        selected_models = st.sidebar.multiselect("Modèle", model_values, default=model_values)
-        filtered_runs = filtered_runs[filtered_runs["params.model_type"].isin(selected_models)]
+        model_values = sorted(
+            filtered_runs["params.model_type"].dropna().unique().tolist()
+        )
+        selected_models = st.sidebar.multiselect(
+            "Modele", model_values, default=model_values
+        )
+        filtered_runs = filtered_runs[
+            filtered_runs["params.model_type"].isin(selected_models)
+        ]
 
     if "params.dataset" in filtered_runs.columns:
-        dataset_values = sorted(filtered_runs["params.dataset"].dropna().unique().tolist())
-        selected_datasets = st.sidebar.multiselect("Dataset", dataset_values, default=dataset_values)
-        filtered_runs = filtered_runs[filtered_runs["params.dataset"].isin(selected_datasets)]
+        dataset_values = sorted(
+            filtered_runs["params.dataset"].dropna().unique().tolist()
+        )
+        selected_datasets = st.sidebar.multiselect(
+            "Dataset", dataset_values, default=dataset_values
+        )
+        filtered_runs = filtered_runs[
+            filtered_runs["params.dataset"].isin(selected_datasets)
+        ]
 
     if "params.optimizer" in filtered_runs.columns:
-        opt_values = sorted(filtered_runs["params.optimizer"].dropna().unique().tolist())
-        selected_opts = st.sidebar.multiselect("Optimiseur", opt_values, default=opt_values)
-        filtered_runs = filtered_runs[filtered_runs["params.optimizer"].isin(selected_opts)]
+        opt_values = sorted(
+            filtered_runs["params.optimizer"].dropna().unique().tolist()
+        )
+        selected_opts = st.sidebar.multiselect(
+            "Optimiseur", opt_values, default=opt_values
+        )
+        filtered_runs = filtered_runs[
+            filtered_runs["params.optimizer"].isin(selected_opts)
+        ]
 
     if filtered_runs.empty:
-        st.warning("Aucun run ne correspond aux filtres sélectionnés.")
+        st.warning("Aucun run ne correspond aux filtres selectionnes.")
         st.stop()
 
-    st.subheader("Vue d’ensemble")
+    st.subheader("Vue d'ensemble")
 
     num_runs = len(filtered_runs)
-    best_test_acc = filtered_runs["metrics.test_acc"].max() if "metrics.test_acc" in filtered_runs.columns else None
-    best_val_acc = filtered_runs["metrics.val_acc"].max() if "metrics.val_acc" in filtered_runs.columns else None
-    mean_train_acc = filtered_runs["metrics.train_acc"].mean() if "metrics.train_acc" in filtered_runs.columns else None
+    best_test_acc = (
+        filtered_runs["metrics.test_acc"].max()
+        if "metrics.test_acc" in filtered_runs.columns
+        else None
+    )
+    best_val_acc = (
+        filtered_runs["metrics.val_acc"].max()
+        if "metrics.val_acc" in filtered_runs.columns
+        else None
+    )
+    mean_train_acc = (
+        filtered_runs["metrics.train_acc"].mean()
+        if "metrics.train_acc" in filtered_runs.columns
+        else None
+    )
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Nombre de runs", f"{num_runs}")
-    c2.metric("Meilleure test accuracy", f"{best_test_acc:.4f}" if pd.notna(best_test_acc) else "N/A")
-    c3.metric("Meilleure val accuracy", f"{best_val_acc:.4f}" if pd.notna(best_val_acc) else "N/A")
-    c4.metric("Train accuracy moyenne", f"{mean_train_acc:.4f}" if pd.notna(mean_train_acc) else "N/A")
+    c2.metric(
+        "Meilleure test accuracy",
+        f"{best_test_acc:.4f}" if pd.notna(best_test_acc) else "N/A",
+    )
+    c3.metric(
+        "Meilleure val accuracy",
+        f"{best_val_acc:.4f}" if pd.notna(best_val_acc) else "N/A",
+    )
+    c4.metric(
+        "Train accuracy moyenne",
+        f"{mean_train_acc:.4f}" if pd.notna(mean_train_acc) else "N/A",
+    )
 
-    if "metrics.test_acc" in filtered_runs.columns and filtered_runs["metrics.test_acc"].notna().any():
+    if (
+        "metrics.test_acc" in filtered_runs.columns
+        and filtered_runs["metrics.test_acc"].notna().any()
+    ):
         best_idx = filtered_runs["metrics.test_acc"].idxmax()
         best_row = filtered_runs.loc[best_idx]
         st.success(
             f"Meilleur run : dataset={best_row.get('params.dataset', 'N/A')} | "
-            f"modèle={best_row.get('params.model_type', 'N/A')} | "
+            f"modele={best_row.get('params.model_type', 'N/A')} | "
             f"BatchNorm={best_row.get('params.use_bn', 'N/A')} | "
             f"optimiseur={best_row.get('params.optimizer', 'N/A')} | "
             f"test_acc={best_row.get('metrics.test_acc', float('nan')):.4f}"
@@ -271,10 +317,13 @@ with tab1:
         )
         fig_test.update_layout(
             height=420,
-            paper_bgcolor="#0e1117",
-            plot_bgcolor="#0e1117",
-            font_color="#f5f5f5",
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            font_color="#111827",
+            title_font_size=18,
         )
+        fig_test.update_xaxes(showgrid=False, linecolor="#d1d5db")
+        fig_test.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
         g1.plotly_chart(fig_test, use_container_width=True)
 
     if {"metrics.train_acc", "metrics.test_acc"}.issubset(plot_df.columns):
@@ -290,15 +339,18 @@ with tab1:
                 "metrics.train_acc": "Train accuracy",
                 "metrics.test_acc": "Test accuracy",
                 "params.use_bn": "BatchNorm",
-                "params.model_type": "Modèle",
+                "params.model_type": "Modele",
             },
         )
         fig_scatter.update_layout(
             height=420,
-            paper_bgcolor="#0e1117",
-            plot_bgcolor="#0e1117",
-            font_color="#f5f5f5",
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            font_color="#111827",
+            title_font_size=18,
         )
+        fig_scatter.update_xaxes(showgrid=False, linecolor="#d1d5db")
+        fig_scatter.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
         g2.plotly_chart(fig_scatter, use_container_width=True)
 
     if {"params.use_bn", "metrics.test_acc"}.issubset(plot_df.columns):
@@ -330,10 +382,13 @@ with tab1:
         )
         fig_bn.update_layout(
             height=380,
-            paper_bgcolor="#0e1117",
-            plot_bgcolor="#0e1117",
-            font_color="#f5f5f5",
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            font_color="#111827",
+            title_font_size=18,
         )
+        fig_bn.update_xaxes(showgrid=False, linecolor="#d1d5db")
+        fig_bn.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
         st.plotly_chart(fig_bn, use_container_width=True)
 
     st.subheader("Tableau des runs")
@@ -379,9 +434,20 @@ with tab1:
 
     runs_display = runs_display.rename(columns=rename_map)
 
-    for col in ["train_acc", "val_acc", "test_acc", "train_loss", "val_loss", "test_loss", "grad_norm", "learning_rate"]:
+    for col in [
+        "train_acc",
+        "val_acc",
+        "test_acc",
+        "train_loss",
+        "val_loss",
+        "test_loss",
+        "grad_norm",
+        "learning_rate",
+    ]:
         if col in runs_display.columns:
-            runs_display[col] = pd.to_numeric(runs_display[col], errors="coerce").round(4)
+            runs_display[col] = pd.to_numeric(
+                runs_display[col], errors="coerce"
+            ).round(4)
 
     if "test_acc" in runs_display.columns:
         runs_display = runs_display.sort_values(by="test_acc", ascending=False)
@@ -394,7 +460,7 @@ with tab1:
 with tab2:
     st.subheader("Pilotage via FastAPI")
     st.markdown(
-        '<div class="small-muted">Tester l’API et lancer une nouvelle expérience depuis l’interface.</div>',
+        '<div class="small-muted">Tester l\'API et lancer une nouvelle experience depuis l\'interface.</div>',
         unsafe_allow_html=True,
     )
 
@@ -407,16 +473,18 @@ with tab2:
                 if response.ok:
                     st.success(response.json())
                 else:
-                    st.warning(f"Réponse API : {response.status_code}")
+                    st.warning(f"Reponse API : {response.status_code}")
             except Exception as exc:
                 st.error(f"API inaccessible : {exc}")
 
     with refresh_col:
-        if st.button("Rappel : rafraîchir les runs MLflow"):
-            st.info("Après un entraînement réussi, retourne sur l’onglet Experiment Explorer et rafraîchis la page.")
+        if st.button("Rappel : rafraichir les runs MLflow"):
+            st.info(
+                "Apres un entrainement reussi, retourne sur l'onglet Experiment Explorer et rafraichis la page."
+            )
 
     st.markdown("---")
-    st.subheader("Lancer une nouvelle expérience")
+    st.subheader("Lancer une nouvelle experience")
 
     form_col1, form_col2 = st.columns(2)
 
@@ -439,7 +507,7 @@ with tab2:
         batch_size = st.selectbox("Batch size", [32, 64, 128, 256], index=1)
         seed = st.number_input("Seed", min_value=0, max_value=10000, value=42, step=1)
 
-    if st.button("Lancer l'entraînement via API", type="primary"):
+    if st.button("Lancer l'entrainement via API", type="primary"):
         payload = {
             "dataset": dataset,
             "model_type": model_type,
@@ -452,15 +520,17 @@ with tab2:
             "verbose": True,
         }
 
-        with st.spinner("Entraînement en cours..."):
+        with st.spinner("Entrainement en cours..."):
             try:
-                response = requests.post("http://127.0.0.1:8000/train", json=payload, timeout=600)
+                response = requests.post(
+                    "http://127.0.0.1:8000/train", json=payload, timeout=600
+                )
                 data = response.json()
 
                 if response.status_code == 200 and data.get("status") == "success":
-                    st.success("Entraînement terminé avec succès.")
+                    st.success("Entrainement termine avec succes.")
                 else:
-                    st.warning("Le training s'est terminé avec un problème.")
+                    st.warning("Le training s'est termine avec un probleme.")
 
                 st.code(data.get("command", ""), language="bash")
 
@@ -470,6 +540,6 @@ with tab2:
                 with st.expander("stderr"):
                     st.text(data.get("stderr", ""))
 
-                st.info("Le nouveau run devrait maintenant apparaître dans MLflow.")
+                st.info("Le nouveau run devrait maintenant apparaitre dans MLflow.")
             except Exception as exc:
                 st.error(f"Erreur lors de l'appel API /train : {exc}")
