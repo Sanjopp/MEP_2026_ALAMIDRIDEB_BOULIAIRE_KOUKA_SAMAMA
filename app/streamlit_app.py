@@ -1,8 +1,13 @@
+import os
+
 import mlflow
 import pandas as pd
 import plotly.express as px
 import requests
 import streamlit as st
+
+MLFLOW_URI = os.getenv("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(page_title="BatchNorm Dashboard", layout="wide")
 
@@ -131,7 +136,7 @@ def to_str(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
 
 @st.cache_data(ttl=10)
 def load_runs(experiment_name: str) -> pd.DataFrame:
-    mlflow.set_tracking_uri("http://127.0.0.1:5001")
+    mlflow.set_tracking_uri(MLFLOW_URI)
     exp = mlflow.get_experiment_by_name(experiment_name)
     if exp is None:
         return pd.DataFrame()
@@ -449,7 +454,7 @@ with tab2:
     with health_col:
         if st.button("Tester /health"):
             try:
-                response = requests.get("http://127.0.0.1:8000/health", timeout=5)
+                response = requests.get(f"{FASTAPI_URL}/health", timeout=5)
                 if response.ok:
                     st.success(response.json())
                 else:
@@ -502,7 +507,7 @@ with tab2:
 
         with st.spinner("Entrainement en cours..."):
             try:
-                response = requests.post("http://127.0.0.1:8000/train", json=payload, timeout=600)
+                response = requests.post(f"{FASTAPI_URL}/train", json=payload, timeout=600)
                 data = response.json()
 
                 if response.status_code == 200 and data.get("status") == "success":
