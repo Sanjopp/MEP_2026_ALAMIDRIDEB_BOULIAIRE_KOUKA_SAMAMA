@@ -5,14 +5,12 @@ import os
 from pathlib import Path
 
 import boto3
-import dotenv
+from dotenv import load_dotenv
 import torch
 import torch.nn.functional as func
 
 from models.cnn import ConvMLP
 from models.mlp import MLP
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
