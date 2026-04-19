@@ -474,7 +474,7 @@ with tab2:
     form_col1, form_col2 = st.columns(2)
 
     with form_col1:
-        dataset = st.selectbox("Dataset", ["cifar10", "fashionmnist"])
+        dataset = st.selectbox("Dataset", ["cifar10", "fashion_mnist"])
         model_type = st.selectbox("Model type", ["cnn", "mlp"])
         use_bn = st.selectbox("Use BatchNorm", [True, False])
         optimizer = st.selectbox("Optimizer", ["adam", "sgd"])
