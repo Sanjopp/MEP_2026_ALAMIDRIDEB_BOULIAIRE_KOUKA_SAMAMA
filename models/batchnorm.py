@@ -14,7 +14,7 @@ class BatchNormFunction(Function):
             # Compute batch statistics
             mu = x.mean(dim=0)
             var = x.var(dim=0, unbiased=False)
-            
+
             # Update running statistics
             running_mean.data = (1 - momentum) * running_mean + momentum * mu.detach()
             running_var.data = (1 - momentum) * running_var + momentum * var.detach()
@@ -22,7 +22,7 @@ class BatchNormFunction(Function):
             # Use running statistics in eval mode
             mu = running_mean
             var = running_var
-        
+
         std_inv = 1.0 / torch.sqrt(var + eps)
         x_centered = x - mu
         x_hat = x_centered * std_inv
@@ -53,14 +53,19 @@ class BatchNorm1D(nn.Module):
         self.beta = nn.Parameter(torch.zeros(dim))
         self.eps = eps
         self.momentum = momentum
-        
+
         # Running statistics for eval mode
-        self.register_buffer('running_mean', torch.zeros(dim))
-        self.register_buffer('running_var', torch.ones(dim))
+        self.register_buffer("running_mean", torch.zeros(dim))
+        self.register_buffer("running_var", torch.ones(dim))
 
     def forward(self, x):
         return BatchNormFunction.apply(
-            x, self.gamma, self.beta, 
-            self.running_mean, self.running_var, 
-            self.eps, self.momentum, self.training
+            x,
+            self.gamma,
+            self.beta,
+            self.running_mean,
+            self.running_var,
+            self.eps,
+            self.momentum,
+            self.training,
         )

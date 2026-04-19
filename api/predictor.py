@@ -111,10 +111,10 @@ class Predictor:
 
         model = self._build_model()
         state_dict = torch.load(local_path, map_location=self.device)
-        
+
         # Load state dict with strict=False to ignore missing running_mean/running_var
         model.load_state_dict(state_dict, strict=False)
-        
+
         model.to(self.device)
         model.eval()
 
