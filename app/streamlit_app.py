@@ -203,43 +203,25 @@ with tab1:
 
     if "params.use_bn" in filtered_runs.columns:
         bn_values = sorted(filtered_runs["params.use_bn"].dropna().unique().tolist())
-        selected_bn = st.sidebar.multiselect(
-            "BatchNorm", bn_values, default=bn_values
-        )
+        selected_bn = st.sidebar.multiselect("BatchNorm", bn_values, default=bn_values)
         filtered_runs = filtered_runs[filtered_runs["params.use_bn"].isin(selected_bn)]
 
     if "params.model_type" in filtered_runs.columns:
-        model_values = sorted(
-            filtered_runs["params.model_type"].dropna().unique().tolist()
-        )
-        selected_models = st.sidebar.multiselect(
-            "Modele", model_values, default=model_values
-        )
-        filtered_runs = filtered_runs[
-            filtered_runs["params.model_type"].isin(selected_models)
-        ]
+        model_values = sorted(filtered_runs["params.model_type"].dropna().unique().tolist())
+        selected_models = st.sidebar.multiselect("Modele", model_values, default=model_values)
+        filtered_runs = filtered_runs[filtered_runs["params.model_type"].isin(selected_models)]
 
     if "params.dataset" in filtered_runs.columns:
-        dataset_values = sorted(
-            filtered_runs["params.dataset"].dropna().unique().tolist()
-        )
+        dataset_values = sorted(filtered_runs["params.dataset"].dropna().unique().tolist())
         selected_datasets = st.sidebar.multiselect(
             "Dataset", dataset_values, default=dataset_values
         )
-        filtered_runs = filtered_runs[
-            filtered_runs["params.dataset"].isin(selected_datasets)
-        ]
+        filtered_runs = filtered_runs[filtered_runs["params.dataset"].isin(selected_datasets)]
 
     if "params.optimizer" in filtered_runs.columns:
-        opt_values = sorted(
-            filtered_runs["params.optimizer"].dropna().unique().tolist()
-        )
-        selected_opts = st.sidebar.multiselect(
-            "Optimiseur", opt_values, default=opt_values
-        )
-        filtered_runs = filtered_runs[
-            filtered_runs["params.optimizer"].isin(selected_opts)
-        ]
+        opt_values = sorted(filtered_runs["params.optimizer"].dropna().unique().tolist())
+        selected_opts = st.sidebar.multiselect("Optimiseur", opt_values, default=opt_values)
+        filtered_runs = filtered_runs[filtered_runs["params.optimizer"].isin(selected_opts)]
 
     if filtered_runs.empty:
         st.warning("Aucun run ne correspond aux filtres selectionnes.")
@@ -445,9 +427,7 @@ with tab1:
         "learning_rate",
     ]:
         if col in runs_display.columns:
-            runs_display[col] = pd.to_numeric(
-                runs_display[col], errors="coerce"
-            ).round(4)
+            runs_display[col] = pd.to_numeric(runs_display[col], errors="coerce").round(4)
 
     if "test_acc" in runs_display.columns:
         runs_display = runs_display.sort_values(by="test_acc", ascending=False)
@@ -460,7 +440,7 @@ with tab1:
 with tab2:
     st.subheader("Pilotage via FastAPI")
     st.markdown(
-        '<div class="small-muted">Tester l\'API et lancer une nouvelle experience depuis l\'interface.</div>',
+        "<div class=\"small-muted\">Tester l'API et lancer une nouvelle experience depuis l'interface.</div>",
         unsafe_allow_html=True,
     )
 
@@ -522,9 +502,7 @@ with tab2:
 
         with st.spinner("Entrainement en cours..."):
             try:
-                response = requests.post(
-                    "http://127.0.0.1:8000/train", json=payload, timeout=600
-                )
+                response = requests.post("http://127.0.0.1:8000/train", json=payload, timeout=600)
                 data = response.json()
 
                 if response.status_code == 200 and data.get("status") == "success":
