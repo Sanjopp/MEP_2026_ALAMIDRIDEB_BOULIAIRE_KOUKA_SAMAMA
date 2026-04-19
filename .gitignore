@@ -196,3 +196,4 @@ cython_debug/
 
 # VS Code settings
 .vscode/
+data/test.ipynb

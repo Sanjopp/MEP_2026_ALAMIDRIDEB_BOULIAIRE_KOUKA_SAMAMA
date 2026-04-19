@@ -5,11 +5,16 @@ import os
 from pathlib import Path
 
 import boto3
+import dotenv
 import torch
 import torch.nn.functional as func
 
 from models.cnn import ConvMLP
 from models.mlp import MLP
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +113,10 @@ class Predictor:
 
         model = self._build_model()
         state_dict = torch.load(local_path, map_location=self.device)
-        model.load_state_dict(state_dict)
+        
+        # Load state dict with strict=False to ignore missing running_mean/running_var
+        model.load_state_dict(state_dict, strict=False)
+        
         model.to(self.device)
         model.eval()
 
@@ -140,6 +148,7 @@ class Predictor:
                 f"Expected {expected_shape} for dataset '{self.dataset}'."
             )
 
+        # Images are already normalized by the DataLoader
         tensor = tensor.unsqueeze(0).to(self.device)
 
         logits = self.model(tensor)
