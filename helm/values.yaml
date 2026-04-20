@@ -10,6 +10,7 @@ service:
 ingress:
   enabled: true
   host: batchnorm-api.user-sanjopp.lab.sspcloud.fr
+  
 
 env:
   MODEL_TYPE: cnn
