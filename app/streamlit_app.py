@@ -170,7 +170,6 @@ tab1, tab2 = st.tabs(["Experiment Explorer", "Train via API"])
 # =========================================================
 with tab1:
     experiments = mlflow.search_experiments()
-
     experiment_names = [exp.name for exp in experiments if exp.name != "Default"]
 
     selected_experiment = st.selectbox(
@@ -186,7 +185,6 @@ with tab1:
             if not exp_runs.empty:
                 exp_runs["experiment_name"] = exp_name
                 all_runs.append(exp_runs)
-
         runs = pd.concat(all_runs, ignore_index=True) if all_runs else pd.DataFrame()
     else:
         runs = load_runs(selected_experiment)
@@ -197,268 +195,266 @@ with tab1:
         st.error(
             f"Aucun run trouve pour l'experience '{selected_experiment}' ou experience introuvable."
         )
-        st.stop()
+    else:
+        metric_cols = [
+            "metrics.train_acc",
+            "metrics.val_acc",
+            "metrics.test_acc",
+            "metrics.train_loss",
+            "metrics.val_loss",
+            "metrics.test_loss",
+            "metrics.grad_norm",
+        ]
 
-    metric_cols = [
-        "metrics.train_acc",
-        "metrics.val_acc",
-        "metrics.test_acc",
-        "metrics.train_loss",
-        "metrics.val_loss",
-        "metrics.test_loss",
-        "metrics.grad_norm",
-    ]
-
-    runs = to_float(runs, [*metric_cols, "params.learning_rate"])
-    runs = to_str(
-        runs,
-        [
-            "params.dataset",
-            "params.model_type",
-            "params.use_bn",
-            "params.optimizer",
-            "params.batch_size",
-            "params.num_epochs",
-            "params.seed",
-        ],
-    )
-
-    st.sidebar.header("Filtres MLflow")
-
-    filtered_runs = runs.copy()
-
-    if "params.use_bn" in filtered_runs.columns:
-        bn_values = sorted(filtered_runs["params.use_bn"].dropna().unique().tolist())
-        selected_bn = st.sidebar.multiselect("BatchNorm", bn_values, default=bn_values)
-        filtered_runs = filtered_runs[filtered_runs["params.use_bn"].isin(selected_bn)]
-
-    if "params.model_type" in filtered_runs.columns:
-        model_values = sorted(filtered_runs["params.model_type"].dropna().unique().tolist())
-        selected_models = st.sidebar.multiselect("Modele", model_values, default=model_values)
-        filtered_runs = filtered_runs[filtered_runs["params.model_type"].isin(selected_models)]
-
-    if "params.dataset" in filtered_runs.columns:
-        dataset_values = sorted(filtered_runs["params.dataset"].dropna().unique().tolist())
-        selected_datasets = st.sidebar.multiselect(
-            "Dataset", dataset_values, default=dataset_values
-        )
-        filtered_runs = filtered_runs[filtered_runs["params.dataset"].isin(selected_datasets)]
-
-    if "params.optimizer" in filtered_runs.columns:
-        opt_values = sorted(filtered_runs["params.optimizer"].dropna().unique().tolist())
-        selected_opts = st.sidebar.multiselect("Optimiseur", opt_values, default=opt_values)
-        filtered_runs = filtered_runs[filtered_runs["params.optimizer"].isin(selected_opts)]
-
-    if filtered_runs.empty:
-        st.warning("Aucun run ne correspond aux filtres selectionnes.")
-        st.stop()
-
-    st.subheader("Vue d'ensemble")
-
-    num_runs = len(filtered_runs)
-    best_test_acc = (
-        filtered_runs["metrics.test_acc"].max()
-        if "metrics.test_acc" in filtered_runs.columns
-        else None
-    )
-    best_val_acc = (
-        filtered_runs["metrics.val_acc"].max()
-        if "metrics.val_acc" in filtered_runs.columns
-        else None
-    )
-    mean_train_acc = (
-        filtered_runs["metrics.train_acc"].mean()
-        if "metrics.train_acc" in filtered_runs.columns
-        else None
-    )
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Nombre de runs", f"{num_runs}")
-    c2.metric(
-        "Meilleure test accuracy",
-        f"{best_test_acc:.4f}" if pd.notna(best_test_acc) else "N/A",
-    )
-    c3.metric(
-        "Meilleure val accuracy",
-        f"{best_val_acc:.4f}" if pd.notna(best_val_acc) else "N/A",
-    )
-    c4.metric(
-        "Train accuracy moyenne",
-        f"{mean_train_acc:.4f}" if pd.notna(mean_train_acc) else "N/A",
-    )
-
-    if (
-        "metrics.test_acc" in filtered_runs.columns
-        and filtered_runs["metrics.test_acc"].notna().any()
-    ):
-        best_idx = filtered_runs["metrics.test_acc"].idxmax()
-        best_row = filtered_runs.loc[best_idx]
-        st.success(
-            f"Meilleur run : dataset={best_row.get('params.dataset', 'N/A')} | "
-            f"modele={best_row.get('params.model_type', 'N/A')} | "
-            f"BatchNorm={best_row.get('params.use_bn', 'N/A')} | "
-            f"optimiseur={best_row.get('params.optimizer', 'N/A')} | "
-            f"test_acc={best_row.get('metrics.test_acc', float('nan')):.4f}"
+        runs = to_float(runs, [*metric_cols, "params.learning_rate"])
+        runs = to_str(
+            runs,
+            [
+                "params.dataset",
+                "params.model_type",
+                "params.use_bn",
+                "params.optimizer",
+                "params.batch_size",
+                "params.num_epochs",
+                "params.seed",
+            ],
         )
 
-    st.subheader("Analyse visuelle")
+        st.sidebar.header("Filtres MLflow")
 
-    plot_df = filtered_runs.copy()
-    if "run_id" in plot_df.columns:
-        plot_df["run_short"] = plot_df["run_id"].str[:8]
+        filtered_runs = runs.copy()
 
-    g1, g2 = st.columns(2)
+        if "params.use_bn" in filtered_runs.columns:
+            bn_values = sorted(filtered_runs["params.use_bn"].dropna().unique().tolist())
+            selected_bn = st.sidebar.multiselect("BatchNorm", bn_values, default=bn_values)
+            filtered_runs = filtered_runs[filtered_runs["params.use_bn"].isin(selected_bn)]
 
-    if {"run_short", "metrics.test_acc"}.issubset(plot_df.columns):
-        fig_test = px.bar(
-            plot_df,
-            x="run_short",
-            y="metrics.test_acc",
-            color="params.use_bn" if "params.use_bn" in plot_df.columns else None,
-            barmode="group",
-            title="Test accuracy par run",
-            labels={
-                "run_short": "Run",
-                "metrics.test_acc": "Test accuracy",
-                "params.use_bn": "BatchNorm",
-            },
-        )
-        fig_test.update_layout(
-            height=420,
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            font_color="#111827",
-            title_font_size=18,
-        )
-        fig_test.update_xaxes(showgrid=False, linecolor="#d1d5db")
-        fig_test.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
-        g1.plotly_chart(fig_test, use_container_width=True)
+        if "params.model_type" in filtered_runs.columns:
+            model_values = sorted(filtered_runs["params.model_type"].dropna().unique().tolist())
+            selected_models = st.sidebar.multiselect("Modele", model_values, default=model_values)
+            filtered_runs = filtered_runs[filtered_runs["params.model_type"].isin(selected_models)]
 
-    if {"metrics.train_acc", "metrics.test_acc"}.issubset(plot_df.columns):
-        fig_scatter = px.scatter(
-            plot_df,
-            x="metrics.train_acc",
-            y="metrics.test_acc",
-            color="params.use_bn" if "params.use_bn" in plot_df.columns else None,
-            symbol="params.model_type" if "params.model_type" in plot_df.columns else None,
-            hover_name="run_id" if "run_id" in plot_df.columns else None,
-            title="Train accuracy vs Test accuracy",
-            labels={
-                "metrics.train_acc": "Train accuracy",
-                "metrics.test_acc": "Test accuracy",
-                "params.use_bn": "BatchNorm",
-                "params.model_type": "Modele",
-            },
-        )
-        fig_scatter.update_layout(
-            height=420,
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            font_color="#111827",
-            title_font_size=18,
-        )
-        fig_scatter.update_xaxes(showgrid=False, linecolor="#d1d5db")
-        fig_scatter.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
-        g2.plotly_chart(fig_scatter, use_container_width=True)
+        if "params.dataset" in filtered_runs.columns:
+            dataset_values = sorted(filtered_runs["params.dataset"].dropna().unique().tolist())
+            selected_datasets = st.sidebar.multiselect(
+                "Dataset", dataset_values, default=dataset_values
+            )
+            filtered_runs = filtered_runs[filtered_runs["params.dataset"].isin(selected_datasets)]
 
-    if {"params.use_bn", "metrics.test_acc"}.issubset(plot_df.columns):
-        st.subheader("Comparaison BatchNorm")
-        bn_summary = (
-            plot_df.groupby("params.use_bn", dropna=False)["metrics.test_acc"]
-            .agg(["mean", "max", "count"])
-            .reset_index()
-        )
-        bn_summary = bn_summary.rename(
-            columns={
+        if "params.optimizer" in filtered_runs.columns:
+            opt_values = sorted(filtered_runs["params.optimizer"].dropna().unique().tolist())
+            selected_opts = st.sidebar.multiselect("Optimiseur", opt_values, default=opt_values)
+            filtered_runs = filtered_runs[filtered_runs["params.optimizer"].isin(selected_opts)]
+
+        if filtered_runs.empty:
+            st.warning("Aucun run ne correspond aux filtres selectionnes.")
+        else:
+            st.subheader("Vue d'ensemble")
+
+            num_runs = len(filtered_runs)
+            best_test_acc = (
+                filtered_runs["metrics.test_acc"].max()
+                if "metrics.test_acc" in filtered_runs.columns
+                else None
+            )
+            best_val_acc = (
+                filtered_runs["metrics.val_acc"].max()
+                if "metrics.val_acc" in filtered_runs.columns
+                else None
+            )
+            mean_train_acc = (
+                filtered_runs["metrics.train_acc"].mean()
+                if "metrics.train_acc" in filtered_runs.columns
+                else None
+            )
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Nombre de runs", f"{num_runs}")
+            c2.metric(
+                "Meilleure test accuracy",
+                f"{best_test_acc:.4f}" if pd.notna(best_test_acc) else "N/A",
+            )
+            c3.metric(
+                "Meilleure val accuracy",
+                f"{best_val_acc:.4f}" if pd.notna(best_val_acc) else "N/A",
+            )
+            c4.metric(
+                "Train accuracy moyenne",
+                f"{mean_train_acc:.4f}" if pd.notna(mean_train_acc) else "N/A",
+            )
+
+            if (
+                "metrics.test_acc" in filtered_runs.columns
+                and filtered_runs["metrics.test_acc"].notna().any()
+            ):
+                best_idx = filtered_runs["metrics.test_acc"].idxmax()
+                best_row = filtered_runs.loc[best_idx]
+                st.success(
+                    f"Meilleur run : dataset={best_row.get('params.dataset', 'N/A')} | "
+                    f"modele={best_row.get('params.model_type', 'N/A')} | "
+                    f"BatchNorm={best_row.get('params.use_bn', 'N/A')} | "
+                    f"optimiseur={best_row.get('params.optimizer', 'N/A')} | "
+                    f"test_acc={best_row.get('metrics.test_acc', float('nan')):.4f}"
+                )
+
+            st.subheader("Analyse visuelle")
+
+            plot_df = filtered_runs.copy()
+            if "run_id" in plot_df.columns:
+                plot_df["run_short"] = plot_df["run_id"].str[:8]
+
+            g1, g2 = st.columns(2)
+
+            if {"run_short", "metrics.test_acc"}.issubset(plot_df.columns):
+                fig_test = px.bar(
+                    plot_df,
+                    x="run_short",
+                    y="metrics.test_acc",
+                    color="params.use_bn" if "params.use_bn" in plot_df.columns else None,
+                    barmode="group",
+                    title="Test accuracy par run",
+                    labels={
+                        "run_short": "Run",
+                        "metrics.test_acc": "Test accuracy",
+                        "params.use_bn": "BatchNorm",
+                    },
+                )
+                fig_test.update_layout(
+                    height=420,
+                    paper_bgcolor="white",
+                    plot_bgcolor="white",
+                    font_color="#111827",
+                    title_font_size=18,
+                )
+                fig_test.update_xaxes(showgrid=False, linecolor="#d1d5db")
+                fig_test.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
+                g1.plotly_chart(fig_test, use_container_width=True)
+
+            if {"metrics.train_acc", "metrics.test_acc"}.issubset(plot_df.columns):
+                fig_scatter = px.scatter(
+                    plot_df,
+                    x="metrics.train_acc",
+                    y="metrics.test_acc",
+                    color="params.use_bn" if "params.use_bn" in plot_df.columns else None,
+                    symbol="params.model_type" if "params.model_type" in plot_df.columns else None,
+                    hover_name="run_id" if "run_id" in plot_df.columns else None,
+                    title="Train accuracy vs Test accuracy",
+                    labels={
+                        "metrics.train_acc": "Train accuracy",
+                        "metrics.test_acc": "Test accuracy",
+                        "params.use_bn": "BatchNorm",
+                        "params.model_type": "Modele",
+                    },
+                )
+                fig_scatter.update_layout(
+                    height=420,
+                    paper_bgcolor="white",
+                    plot_bgcolor="white",
+                    font_color="#111827",
+                    title_font_size=18,
+                )
+                fig_scatter.update_xaxes(showgrid=False, linecolor="#d1d5db")
+                fig_scatter.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
+                g2.plotly_chart(fig_scatter, use_container_width=True)
+
+            if {"params.use_bn", "metrics.test_acc"}.issubset(plot_df.columns):
+                st.subheader("Comparaison BatchNorm")
+                bn_summary = (
+                    plot_df.groupby("params.use_bn", dropna=False)["metrics.test_acc"]
+                    .agg(["mean", "max", "count"])
+                    .reset_index()
+                )
+                bn_summary = bn_summary.rename(
+                    columns={
+                        "params.use_bn": "use_bn",
+                        "mean": "mean_test_acc",
+                        "max": "best_test_acc",
+                        "count": "nb_runs",
+                    }
+                )
+
+                fig_bn = px.bar(
+                    bn_summary,
+                    x="use_bn",
+                    y="mean_test_acc",
+                    hover_data=["best_test_acc", "nb_runs"],
+                    title="Test accuracy moyenne selon BatchNorm",
+                    labels={
+                        "use_bn": "BatchNorm",
+                        "mean_test_acc": "Test accuracy moyenne",
+                    },
+                )
+                fig_bn.update_layout(
+                    height=380,
+                    paper_bgcolor="white",
+                    plot_bgcolor="white",
+                    font_color="#111827",
+                    title_font_size=18,
+                )
+                fig_bn.update_xaxes(showgrid=False, linecolor="#d1d5db")
+                fig_bn.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
+                st.plotly_chart(fig_bn, use_container_width=True)
+
+            st.subheader("Tableau des runs")
+
+            display_cols = [
+                "run_id",
+                "params.dataset",
+                "params.model_type",
+                "params.use_bn",
+                "params.optimizer",
+                "params.learning_rate",
+                "params.batch_size",
+                "params.num_epochs",
+                "metrics.train_acc",
+                "metrics.val_acc",
+                "metrics.test_acc",
+                "metrics.train_loss",
+                "metrics.val_loss",
+                "metrics.test_loss",
+                "metrics.grad_norm",
+            ]
+
+            available_cols = [c for c in display_cols if c in filtered_runs.columns]
+            runs_display = filtered_runs[available_cols].copy()
+
+            rename_map = {
+                "run_id": "run_id",
+                "params.dataset": "dataset",
+                "params.model_type": "model_type",
                 "params.use_bn": "use_bn",
-                "mean": "mean_test_acc",
-                "max": "best_test_acc",
-                "count": "nb_runs",
+                "params.optimizer": "optimizer",
+                "params.learning_rate": "learning_rate",
+                "params.batch_size": "batch_size",
+                "params.num_epochs": "num_epochs",
+                "metrics.train_acc": "train_acc",
+                "metrics.val_acc": "val_acc",
+                "metrics.test_acc": "test_acc",
+                "metrics.train_loss": "train_loss",
+                "metrics.val_loss": "val_loss",
+                "metrics.test_loss": "test_loss",
+                "metrics.grad_norm": "grad_norm",
             }
-        )
 
-        fig_bn = px.bar(
-            bn_summary,
-            x="use_bn",
-            y="mean_test_acc",
-            hover_data=["best_test_acc", "nb_runs"],
-            title="Test accuracy moyenne selon BatchNorm",
-            labels={
-                "use_bn": "BatchNorm",
-                "mean_test_acc": "Test accuracy moyenne",
-            },
-        )
-        fig_bn.update_layout(
-            height=380,
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            font_color="#111827",
-            title_font_size=18,
-        )
-        fig_bn.update_xaxes(showgrid=False, linecolor="#d1d5db")
-        fig_bn.update_yaxes(gridcolor="#e5e7eb", linecolor="#d1d5db")
-        st.plotly_chart(fig_bn, use_container_width=True)
+            runs_display = runs_display.rename(columns=rename_map)
 
-    st.subheader("Tableau des runs")
+            for col in [
+                "train_acc",
+                "val_acc",
+                "test_acc",
+                "train_loss",
+                "val_loss",
+                "test_loss",
+                "grad_norm",
+                "learning_rate",
+            ]:
+                if col in runs_display.columns:
+                    runs_display[col] = pd.to_numeric(runs_display[col], errors="coerce").round(4)
 
-    display_cols = [
-        "run_id",
-        "params.dataset",
-        "params.model_type",
-        "params.use_bn",
-        "params.optimizer",
-        "params.learning_rate",
-        "params.batch_size",
-        "params.num_epochs",
-        "metrics.train_acc",
-        "metrics.val_acc",
-        "metrics.test_acc",
-        "metrics.train_loss",
-        "metrics.val_loss",
-        "metrics.test_loss",
-        "metrics.grad_norm",
-    ]
+            if "test_acc" in runs_display.columns:
+                runs_display = runs_display.sort_values(by="test_acc", ascending=False)
 
-    available_cols = [c for c in display_cols if c in filtered_runs.columns]
-    runs_display = filtered_runs[available_cols].copy()
-
-    rename_map = {
-        "run_id": "run_id",
-        "params.dataset": "dataset",
-        "params.model_type": "model_type",
-        "params.use_bn": "use_bn",
-        "params.optimizer": "optimizer",
-        "params.learning_rate": "learning_rate",
-        "params.batch_size": "batch_size",
-        "params.num_epochs": "num_epochs",
-        "metrics.train_acc": "train_acc",
-        "metrics.val_acc": "val_acc",
-        "metrics.test_acc": "test_acc",
-        "metrics.train_loss": "train_loss",
-        "metrics.val_loss": "val_loss",
-        "metrics.test_loss": "test_loss",
-        "metrics.grad_norm": "grad_norm",
-    }
-
-    runs_display = runs_display.rename(columns=rename_map)
-
-    for col in [
-        "train_acc",
-        "val_acc",
-        "test_acc",
-        "train_loss",
-        "val_loss",
-        "test_loss",
-        "grad_norm",
-        "learning_rate",
-    ]:
-        if col in runs_display.columns:
-            runs_display[col] = pd.to_numeric(runs_display[col], errors="coerce").round(4)
-
-    if "test_acc" in runs_display.columns:
-        runs_display = runs_display.sort_values(by="test_acc", ascending=False)
-
-    st.dataframe(runs_display, use_container_width=True, hide_index=True)
+            st.dataframe(runs_display, use_container_width=True, hide_index=True)
 
 # =========================================================
 # TAB 2 - FASTAPI TRAINING
