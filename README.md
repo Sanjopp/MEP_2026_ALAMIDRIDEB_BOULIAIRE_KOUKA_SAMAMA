@@ -1,278 +1,285 @@
 # How Does Batch Normalization Really Help Optimization?
 
-**Advanced Machine Learning Course Project**
+![CI](https://github.com/Sanjopp/MEP_2026_ALAMIDRIDEB_BOULIAIRE_KOUKA_SAMAMA/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.13-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.10+-red)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-This project revisits the fundamental question: How does Batch Normalization really help optimization? We conduct controlled experiments in a simplified setting using two architectures—Multi-Layer Perceptron (MLP) and Convolutional Neural Network (CNN)—trained with and without Batch Normalization on CIFAR-10 and Fashion-MNIST datasets. Our experiments aim to isolate and verify the core hypothesis that Batch Normalization facilitates optimization primarily through landscape smoothing rather than by stabilizing activation statistics.
+**Advanced Machine Learning Course Project** — Z. Alami Drideb, Z. Bouliaire, H. Kouka, R. Samama
 
-##  Repository Overview
-
-This project systematically investigates the impact of Batch Normalization through controlled experiments:
-
-**Experimental Matrix**: 2 Datasets × 2 Architectures × 2 Analysis Levels = 8 Core Experiments
-- **Datasets**: CIFAR-10 (RGB, 32×32) and Fashion-MNIST (Grayscale, 28×28)
-- **Architectures**: MLP (fully-connected layers) and CNN (convolutional layers)
-- **Analysis Granularity**: 
-  - **Epoch-level** - Metrics computed after each complete epoch
-  - **Step-level** - Metrics computed at every batch during training for fine-grained dynamics
-
-Each experiment compares training with and without Batch Normalization, examining:
-- Accuracy
-- Loss stability during training
-- Gradient flow and optimization dynamics
-
-##  Project Structure
-
-### Core Files
-- **`models/`** - Neural network architectures
-  - `mlp.py` - Fully-connected (Dense) networks with optional BatchNorm
-  - `cnn.py` - Convolutional Neural Networks with optional BatchNorm
-  - `batchnorm.py` - Custom BatchNorm1D implementation from scratch
-  
-- **`train_utils.py`** - Training utilities and step-level logging
-  - Gradient norm computation
-  - Step-by-step training with per-batch metrics
-  - Training and validation loops
-  
-- **`data.py`** - CIFAR-10 dataset utilities
-- **`data_fashion.py`** - Fashion-MNIST dataset utilities
-- **`check_data.ipynb`** - Data exploration and validation notebook
-
-### Data
-- **`DATA/cifar-10-batches-py/`** - CIFAR-10 dataset (binary format)
-- **`DATA/FashionMNIST/`** - Fashion-MNIST dataset
-
-### Experiments (Notebooks)
-
-All experiments are organized in the `notebook/` directory with a systematic structure:
-
-**Experiment Design Matrix:**
-- 2 Datasets: CIFAR-10, Fashion-MNIST
-- 2 Architectures: MLP (fully-connected), CNN (convolutional)
-- 2 Analysis Levels: Epoch-level, Step-level (per-batch granularity)
-
-#### Fashion-MNIST + MLP
-1. **`experiment_fashion.ipynb`** - Epoch-level analysis
-   - Training MLP on Fashion-MNIST
-   - Compares with/without Batch Normalization
-   - Metrics per epoch: Loss, Accuracy, Gradient norms
-
-2. **`experiment_fashion_by_steps.ipynb`** - Step-level analysis
-   - Same MLP but tracks metrics at every batch (step)
-   - Per-step loss, accuracy, and gradient norms
-   - Reveals fine-grained training dynamics
-
-#### Fashion-MNIST + CNN
-3. **`experiment_fashion_cnn.ipynb`** - Epoch-level analysis
-   - Convolutional approach on Fashion-MNIST
-   - Feature extraction benefits and MLP comparison
-   - Epoch-level performance comparison
-
-4. **`experiment_fashion_cnn_by_steps.ipynb`** - Step-level analysis
-   - Same CNN architecture with step-by-step logging
-   - Detailed gradient flow and loss evolution per batch
-
-#### CIFAR-10 + MLP
-5. **`experiment_cifar.ipynb`** - Epoch-level analysis
-   - Training MLP on CIFAR-10 dataset
-   - with/without Batch Normalization comparison
-   - Standard learning curves per epoch
-
-6. **`experiment_cifar_by_steps.ipynb`** - Step-level analysis
-   - Step-by-step optimization dynamics on CIFAR-10
-   - Per-batch metrics for detailed analysis
-
-#### CIFAR-10 + CNN
-7. **`experiment_cifar_cnn.ipynb`** - Epoch-level analysis
-   - CNN models on CIFAR-10
-   - Higher complexity dataset with convolutional features
-   - Epoch-level performance metrics
-
-8. **`experiment_cifar_cnn_by_steps.ipynb`** - Step-level analysis
-   - Fine-grained step analysis for CNN on CIFAR-10
-   - Shows layer-wise evolution during training
-
-#### Special Analysis ( on CIFAR-10 )
-- **`experiment_activation_distribution.ipynb`**
-  - Deep dive into Batch Normalization's effect on activation distributions
-  - Visualizes how internal representations change
-
-##  Key Components
-
-### Custom Batch Normalization
-The `batchnorm.py` module implements a custom BatchNorm1D layer using PyTorch's autograd:
-- Computes normalization statistics (mean, variance)
-- Normalizes activations
-- Includes learnable scale (γ) and shift (β) parameters
-- Proper gradient computation for all parameters
-
-### Models
-
-**MLP (Multi-Layer Perceptron)**
-```python
-MLP(
-    input_dim=784,        # For 28×28 images (Fashion-MNIST)
-    hidden_dims=(512, 256, 128),
-    num_classes=10,
-    use_bn=True/False     # Toggle Batch Normalization
-)
-```
-
-**ConvMLP (Convolutional + Dense)**
-```python
-ConvMLP(
-    in_channels=3,        # 3 for CIFAR-10, 1 for Fashion-MNIST
-    input_size=32,        # 32 for CIFAR-10, 28 for Fashion-MNIST
-    conv_channels=(32, 64),
-    hidden_dims=(512, 256, 128),
-    num_classes=10,
-    use_bn=True/False
-)
-```
-
-### Training Utilities
-- **`train_steps()`** - Trains for one epoch with per-batch logging
-- **`grad_norm()`** - Computes L2 norm of all gradients
-- **Per-step metrics** - Loss, accuracy, gradient norm tracked at batch level
-
-##  Datasets
-
-### CIFAR-10
-- 32×32 RGB images
-- 10 object classes
-- 50,000 training samples, 10,000 test samples
-
-### Fashion-MNIST
-- 28×28 grayscale images
-- 10 clothing/object classes
-- 60,000 training samples, 10,000 test samples
-
-##  Requirements
-
-All dependencies are listed in `requirements.txt`:
-- **PyTorch** - Deep learning framework
-- **NumPy** - Numerical computations
-- **Matplotlib** - Visualization
-- **Jupyter** - Interactive notebooks
-- **tqdm** - Progress bars
-- **PIL** - Image processing
-- CUDA support for GPU acceleration
-
-
-##  Key Findings (Expected)
-
-Through these experiments, you'll observe:
-
-1. **Faster Convergence** - Models with BatchNorm typically converge faster
-2. **Higher Accuracy** - BN often leads to better final performance
-3. **Smoother Training** - Loss curves are more stable with BatchNorm
-4. **Better Gradient Flow** - Gradient norms remain more stable
-
-##  Research Questions Addressed
-
-- How does Batch Normalization affect activation distributions?
-- Does BN improve training dynamics at the step level?
-- Are the benefits consistent across different architectures (MLP vs CNN)?
-- Does BN improve performance on different datasets?
-- How do gradients flow differently with vs. without BN?
-
-##  Notes
-
-- All experiments use standard SGD/Adam optimizers
-- Batch size: typically 128
-- Models are trained from scratch (no pre-training)
-
-##  References
-
-Related concepts:
-- [Batch Normalization Paper](https://arxiv.org/abs/1502.03167) - Original BN introduction
-- [How Does Batch Normalization Help Optimization?](https://arxiv.org/abs/1805.11604) - Analysis of BN's role in landscape smoothing vs. activation stabilization
+This project investigates the core question: *how does Batch Normalization really help optimization?* We conduct controlled experiments using MLP and CNN architectures trained with and without Batch Normalization on CIFAR-10 and Fashion-MNIST. The central hypothesis is that BN helps primarily through **loss landscape smoothing**, not by stabilizing activation statistics.
 
 ---
 
-## Production Deployment
+## Table of Contents
 
-### Architecture
+1. [Quick Start](#quick-start)
+2. [Research Design](#research-design)
+3. [Project Structure](#project-structure)
+4. [Models](#models)
+5. [Training](#training)
+6. [Dashboard & Experiment Tracking](#dashboard--experiment-tracking)
+7. [API](#api)
+8. [Deployment](#deployment)
+9. [CI/CD](#cicd)
+10. [Datasets](#datasets)
+11. [References](#references)
 
-The API exposes trained models via a REST interface built with **FastAPI**.
-It runs inside a **Docker** container and loads the model from **S3** at startup.
+---
 
-The API loads the model weights from **S3** at startup, builds the model architecture, and serves predictions via two endpoints: `GET /health` for service status and `POST /predict` for image classification.
+## Quick Start
+
+```bash
+# 1. Install dependencies (requires uv)
+make requirements
+
+# 2. Configure secrets
+cp config/secrets.env.example config/secrets.env
+# edit config/secrets.env with AWS credentials and model config
+
+# 3. Launch MLflow tracking UI
+make mlflow-ui         # http://localhost:5000
+
+# 4. Launch the Streamlit dashboard
+make streamlit         # http://localhost:8501
+
+# 5. Launch the REST API (dev mode)
+make run-api           # http://localhost:8000
+```
+
+---
+
+## Research Design
+
+**Experimental Matrix**: 2 Datasets × 2 Architectures × 2 Analysis Levels = **8 Core Experiments**
+
+| # | Dataset | Architecture | Granularity |
+|---|---------|--------------|-------------|
+| 1 | Fashion-MNIST | MLP | Epoch-level |
+| 2 | Fashion-MNIST | MLP | Step-level (per-batch) |
+| 3 | Fashion-MNIST | CNN | Epoch-level |
+| 4 | Fashion-MNIST | CNN | Step-level |
+| 5 | CIFAR-10 | MLP | Epoch-level |
+| 6 | CIFAR-10 | MLP | Step-level |
+| 7 | CIFAR-10 | CNN | Epoch-level |
+| 8 | CIFAR-10 | CNN | Step-level |
+
+Each experiment trains two models — with and without BN — and compares:
+- Loss and accuracy curves
+- Gradient norms (L2) per step/epoch
+- Activation distributions (CIFAR-10 specific analysis)
+
+**Expected findings:**
+1. Models with BN converge faster
+2. Loss curves are smoother with BN
+3. Gradient norms are more stable
+4. Final accuracy is higher with BN
+
+---
+
+## Project Structure
+
+```
+.
+├── models/                     # Neural network architectures
+│   ├── mlp.py                  # MLP with optional BatchNorm
+│   ├── cnn.py                  # ConvMLP with optional BatchNorm
+│   └── batchnorm.py            # Custom BatchNorm1D from scratch
+│
+├── src/training/               # Training pipeline
+│   ├── train.py                # Main entry point (MLflow logging)
+│   ├── config_handler.py       # CLI + YAML config management
+│   ├── checkpoint.py           # Save/load model checkpoints
+│   ├── reproducibility.py      # Seed management, device utils
+│   └── evaluate.py             # Test-set evaluation
+│
+├── api/                        # FastAPI service
+│   ├── main.py                 # Endpoints: /health, /predict, /train
+│   ├── predictor.py            # Model loading (S3) + inference
+│   └── schemas.py              # Pydantic request/response schemas
+│
+├── app/
+│   └── streamlit_app.py        # Interactive experiment dashboard
+│
+├── data/
+│   ├── dataload_cifar.py       # CIFAR-10 loader (uint8, S3-backed)
+│   ├── dataload_fashion.py     # Fashion-MNIST loader (IDX format)
+│   └── data_io.py              # S3 / local fallback abstraction
+│
+├── config/
+│   ├── settings.py             # Paths, S3 keys, DataLoader defaults
+│   └── secrets.env.example     # Secrets template
+│
+├── tests/
+│   ├── test_models.py          # Unit tests: MLP, CNN, BatchNorm
+│   └── test_api.py             # Unit tests: API endpoints
+│
+├── helm/                       # Kubernetes Helm chart
+├── argocd/                     # ArgoCD application manifests
+├── config.yaml                 # Default training configuration
+├── Dockerfile                  # Multi-stage image (Python 3.13-slim)
+├── docker-compose.yml          # Local container setup
+├── Makefile                    # All common commands
+└── pyproject.toml              # Dependencies (uv)
+```
+
+---
+
+## Models
+
+### MLP (Multi-Layer Perceptron)
+
+```python
+MLP(
+    input_dim=784,              # 784 for Fashion-MNIST, 3072 for CIFAR-10
+    hidden_dims=(512, 256, 128),
+    num_classes=10,
+    use_bn=True                 # Toggle BatchNorm on/off
+)
+```
+
+### ConvMLP (Convolutional + Dense)
+
+```python
+ConvMLP(
+    in_channels=3,              # 3 for CIFAR-10, 1 for Fashion-MNIST
+    input_size=32,              # 32 for CIFAR-10, 28 for Fashion-MNIST
+    conv_channels=(32, 64),
+    hidden_dims=(512, 256, 128),
+    num_classes=10,
+    use_bn=True
+)
+```
+
+### Custom BatchNorm1D
+
+`models/batchnorm.py` is a from-scratch implementation using PyTorch autograd:
+- Computes batch mean and variance
+- Normalizes activations (ε = 1e-5)
+- Learnable scale (γ) and shift (β)
+- Tracks running statistics for eval mode
+
+---
+
+## Training
+
+### Via config file
+
+Edit `config.yaml`, then:
+
+```bash
+python src/training/train.py
+```
+
+Key parameters in `config.yaml`:
+
+```yaml
+dataset:
+  name: "cifar10"        # cifar10 | fashion_mnist
+  batch_size: 128
+
+model:
+  type: "cnn"            # mlp | cnn
+  use_bn: true
+
+training:
+  num_epochs: 10
+  learning_rate: 0.1
+  optimizer: "adam"      # adam | sgd
+  seed: 42
+```
+
+### Via CLI
+
+```bash
+python src/training/train.py --dataset cifar10 --model_type cnn --use_bn true --num_epochs 20
+```
+
+### Grid search + best model
+
+Run a full grid search across configurations and automatically upload the best model to S3:
+
+```bash
+make train-gridsearch
+```
+
+Results and metrics are logged to MLflow and the best checkpoint is pushed to S3 under `models/`.
+
+---
+
+## Dashboard & Experiment Tracking
+
+### Streamlit dashboard
+
+```bash
+make streamlit
+```
+
+Opens at `http://localhost:8501`. Features:
+- Browse all MLflow experiments
+- Filter by dataset, model type, BatchNorm flag
+- Plot learning curves (loss, accuracy, gradient norms)
+- Launch new training runs from the UI
+- Run inference directly from the browser
+
+### MLflow UI
+
+```bash
+make mlflow-ui
+```
+
+Opens at `http://localhost:5000`. All training runs are automatically logged with:
+- Hyperparameters (lr, optimizer, seed, use_bn, ...)
+- Per-epoch metrics (loss, accuracy, gradient norm)
+- Model artifacts
+
+---
+
+## API
+
+The FastAPI service loads a trained model from S3 at startup and exposes two main endpoints.
 
 ### Environment variables
 
-Copy `config/secrets.env.example` to `config/secrets.env` and fill in the values:
+Copy `config/secrets.env.example` to `config/secrets.env` and fill in:
 
-| Variable                | Description                              | Example                      |
-|-------------------------|------------------------------------------|------------------------------|
-| `MODEL_TYPE`            | Model architecture                       | `cnn` or `mlp`               |
-| `DATASET`               | Dataset the model was trained on         | `cifar10` or `fashion_mnist` |
-| `USE_BN`                | Whether Batch Normalization is enabled   | `true` or `false`            |
-| `S3_BUCKET`             | S3 bucket name                           | `data-mep-project`           |
-| `S3_MODEL_KEY`          | Path to the model file in the bucket     | `models/cifar10_cnn_bn.pt`   |
-| `AWS_ACCESS_KEY_ID`     | AWS access key                           | —                            |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key                           | —                            |
-| `AWS_DEFAULT_REGION`    | Bucket region                            | `eu-north-1`                 |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `MODEL_TYPE` | Model architecture | `cnn` or `mlp` |
+| `DATASET` | Dataset the model was trained on | `cifar10` or `fashion_mnist` |
+| `USE_BN` | Whether BatchNorm is enabled | `true` or `false` |
+| `S3_BUCKET` | S3 bucket name | `data-mep-project` |
+| `S3_MODEL_KEY` | Path to model weights in S3 | `models/cifar10_cnn_bn.pt` |
+| `AWS_ACCESS_KEY_ID` | AWS access key | — |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | — |
+| `AWS_DEFAULT_REGION` | Bucket region | `eu-north-1` |
 
-### Run the API locally (without Docker)
+### Run locally
 
 ```bash
-# 1. Install dependencies
 make requirements
-
-# 2. Create and fill in the secrets file
-cp config/secrets.env.example config/secrets.env
-# edit config/secrets.env with your values
-
-# 3. Start the API in development mode (auto-reload)
 make run-api
 ```
 
-The API is available at `http://localhost:8000`.
-Interactive Swagger documentation is available at `http://localhost:8000/docs`.
+API available at `http://localhost:8000`.  
+Swagger docs at `http://localhost:8000/docs`.
 
-### Run the API with Docker
+### Run with Docker
 
 ```bash
-# 1. Create and fill in the secrets file
-cp config/secrets.env.example config/secrets.env
-# edit config/secrets.env with your values
-
-# 2. Build the Docker image
 make docker-build
-
-# 3. Start the container
-make docker-up
-```
-
-The API is available at `http://localhost:8000`.
-
-Run in detached mode:
-
-```bash
-make docker-up-detached
-```
-
-Stop the container:
-
-```bash
+make docker-up          # or make docker-up-detached
+make docker-logs
 make docker-down
 ```
 
-View logs:
-
-```bash
-make docker-logs
-```
-
-### API usage examples
+### Endpoints
 
 **Health check:**
 
 ```bash
 curl http://localhost:8000/health
 ```
-
-Expected response:
 
 ```json
 {
@@ -289,10 +296,8 @@ Expected response:
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"image": [[[0.5, 0.5, ...] ...] ...]}'
+  -d '{"image": [[[0.5, ...]]]}'
 ```
-
-Expected response:
 
 ```json
 {
@@ -303,48 +308,42 @@ Expected response:
 }
 ```
 
-### Run the tests
+**Launch training:**
 
 ```bash
-# All tests (models + API)
-make test
-
-# API tests only
-make test-api
+curl -X POST http://localhost:8000/train \
+  -H "Content-Type: application/json" \
+  -d '{"dataset": "cifar10", "model_type": "cnn", "use_bn": true, "num_epochs": 10}'
 ```
 
-## SSP Cloud Deployment
+### Tests
 
-### Prerequisites
+```bash
+make test          # all tests
+make test-api      # API only
+make test-models   # models only
+```
 
+---
+
+## Deployment
+
+### SSP Cloud (Kubernetes / Helm)
+
+**Prerequisites:**
 - Access to [SSP Cloud](https://datalab.sspcloud.fr)
-- `kubectl` and `helm` configured with your SSP Cloud credentials (see **My account > Kubernetes**)
-- Your AWS secrets configured in SSP Cloud **My Secrets** under `mep-secrets`
-
-### Deploy with Helm
+- `kubectl` and `helm` configured (see **My account > Kubernetes**)
+- AWS secrets stored in SSP Cloud **My Secrets** under `mep-secrets`
 
 ```bash
-make helm-deploy
+make helm-deploy      # deploy
+make helm-status      # check status
+make helm-uninstall   # tear down
 ```
 
-The API will be accessible at:
-`https://batchnorm-api.user-sanjopp.lab.sspcloud.fr`
+Live URL: `https://batchnorm-api.user-sanjopp.lab.sspcloud.fr`
 
-### Check deployment status
-
-```bash
-make helm-status
-```
-
-### Uninstall
-
-```bash
-make helm-uninstall
-```
-
-### Switch model
-
-To deploy a different model, edit `helm/values.yaml` and update:
+To switch model, edit `helm/values.yaml`:
 
 ```yaml
 env:
@@ -354,12 +353,58 @@ env:
   S3_MODEL_KEY: models/fashion_mnist_mlp_no_bn.pt
 ```
 
-Then redeploy:
+Then redeploy with `make helm-deploy`.
+
+### ArgoCD (GitOps)
+
+ArgoCD manifests are in `argocd/`. The application syncs automatically from the `main` branch, watching `helm/` for changes.
 
 ```bash
-make helm-deploy
+kubectl apply -f argocd/application.yaml
 ```
 
-**Project Status**: Active research and experimentation  
-**Current Branch**: `main`   
-**Last Updated**: January 2025
+---
+
+## CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request:
+
+| Job | Trigger | What it does |
+|-----|---------|-------------|
+| `lint` | push / PR | Ruff format check + linting |
+| `test` | push / PR | pytest (models + API) |
+| `docker` | push to `main` | Build & push image to Docker Hub |
+
+The Docker job only runs if lint and test pass.
+
+---
+
+## Datasets
+
+### CIFAR-10
+
+- 32×32 RGB images, 10 classes
+- 50,000 train + 10,000 test
+- S3: `data-mep-project/DATA/Cifar_10/cifar10_uint8.pt` (~150 MB)
+
+### Fashion-MNIST
+
+- 28×28 grayscale images, 10 classes
+- 60,000 train + 10,000 test
+- S3: `data-mep-project/DATA/FashionMNIST/raw/` (~52 MB)
+
+Data is loaded from S3 at training time with automatic fallback to `data/local/` if offline.
+
+To sync data locally:
+
+```bash
+make sync_data_down    # S3 → local
+make sync_data_up      # local → S3
+```
+
+---
+
+## References
+
+- [Batch Normalization: Accelerating Deep Network Training...](https://arxiv.org/abs/1502.03167) — Ioffe & Szegedy (2015)
+- [How Does Batch Normalization Help Optimization?](https://arxiv.org/abs/1805.11604) — Santurkar et al. (2018)

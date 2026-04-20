@@ -23,7 +23,7 @@ from data.data_io import load_idx_artifact
 logger = logging.getLogger(__name__)
 
 
-# ── Parseurs IDX ──────────────────────────────────────────────────────────────
+# Parseurs IDX
 
 
 def _parse_idx_images(data: bytes) -> torch.Tensor:
@@ -56,7 +56,7 @@ def _parse_idx_labels(data: bytes) -> torch.Tensor:
     return torch.from_numpy(labels.astype(np.int64).copy())
 
 
-# ── Calcul mean / std ─────────────────────────────────────────────────────────
+# Calcul mean / std
 
 
 def _compute_mean_std(x_uint8: torch.Tensor) -> tuple[float, float]:
@@ -74,7 +74,7 @@ def _compute_mean_std(x_uint8: torch.Tensor) -> tuple[float, float]:
     return mean, std
 
 
-# ── Dataset ───────────────────────────────────────────────────────────────────
+# Dataset
 
 
 class FashionMNISTUInt8Dataset(Dataset):

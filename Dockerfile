@@ -1,4 +1,4 @@
-# ── Stage 1 : builder ─────────────────────────────────────────────────────────
+# Stage 1 : builder 
 FROM python:3.13-slim AS builder
 
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY mep_2026_alamidrideb_bouliaire_kouka_samama/ ./mep_2026_alamidrideb_bouliai
 # Install all production dependencies into a virtual environment
 RUN uv sync --frozen --no-dev
 
-# ── Stage 2 : runtime ─────────────────────────────────────────────────────────
+# Stage 2 : runtime
 FROM python:3.13-slim AS runtime
 
 WORKDIR /app

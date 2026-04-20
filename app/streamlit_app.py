@@ -11,9 +11,10 @@ FASTAPI_URL = os.getenv("FASTAPI_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(page_title="BatchNorm Dashboard", layout="wide")
 
-# -----------------------------
+
 # Style
-# -----------------------------
+
+
 st.markdown(
     """
     <style>
@@ -116,10 +117,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
-# -----------------------------
 # Helpers
-# -----------------------------
+
+
 def to_float(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     for col in cols:
         if col in df.columns:
@@ -456,9 +456,9 @@ with tab1:
 
             st.dataframe(runs_display, use_container_width=True, hide_index=True)
 
-# =========================================================
-# TAB 2 - FASTAPI TRAINING
-# =========================================================
+
+# FASTAPI TRAINING
+
 with tab2:
     st.subheader("Pilotage via FastAPI")
     st.markdown(
